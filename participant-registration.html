@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participant Registration - CCRT RSII</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/particles.css">
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <img src="Assets/3-colour-logo-1.jpg" alt="CCRT Logo" class="logo">
+            </div>
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item"><a href="index.html" class="nav-link">CCRT RSII</a></li>
+                <li class="nav-item"><a href="rsii-initiative.html" class="nav-link">RSII INITIATIVE</a></li>
+                <li class="nav-item"><a href="objects.html" class="nav-link">OBJECTS</a></li>
+                <li class="nav-item"><a href="participant-application.html" class="nav-link">PARTICIPANT APPLICATION</a></li>
+                <li class="nav-item"><a href="contact.html" class="nav-link">CONTACT US</a></li>
+                <li class="nav-item"><a href="participant-login.html" class="nav-link">PARTICIPANT LOGIN</a></li>
+                <li class="nav-item"><a href="baa.html" class="nav-link">BAA</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="page-background" style="background-image: url('Assets/RSII image.jpg');">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <h1 class="page-title">PARTICIPANT REGISTRATION</h1>
+                    <p class="hero-description">Invitation Only Access</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="container">
+                <div class="content-overlay">
+                    <div style="text-align: center;">
+                        <h3 class="feature-title">INVITATION REQUIRED</h3>
+                        <p class="feature-description">
+                            This registration page is accessible only through invitation links sent to prospective participants.
+                            If you have received an invitation, please use the link provided in your invitation email.
+                        </p>
+                        <p class="feature-description">
+                            If you believe you should have access to this page, please contact us at:
+                            <br><br>
+                            <a href="mailto:contact@ccrt-rsii.org" style="color: var(--purple); font-weight: bold;">contact@ccrt-rsii.org</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <form id="registrationForm">
+                        <h3 class="page-subtitle" style="text-align: center; margin-bottom: 2rem;">REGISTRATION FORM</h3>
+                        
+                        <div class="form-group">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" id="firstName" name="firstName" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="invitationCode" class="form-label">Invitation Code</label>
+                            <input type="text" id="invitationCode" name="invitationCode" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="privacyAgreement" name="privacyAgreement" required>
+                                <span>I agree to the <a href="privacy-policy.html" style="color: var(--purple);">Privacy Policy</a></span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="form-btn">REGISTER</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <h4>Childhood Cancer Research Trust</h4>
+                <p>Registered in England & Wales<br>with Charity No. 1196005</p>
+            </div>
+            <div class="footer-buttons">
+                <a href="http://www.ccrt.uk" class="footer-btn" target="_blank">CCRT.UK</a>
+                <a href="https://childhoodcancerresearchtrust.org/product/donation/" class="footer-btn donate-btn" target="_blank">DONATE</a>
+                <a href="rsii-initiative.html" class="footer-btn">RSII INITIATIVE</a>
+                <a href="mailto:contact@ccrt-rsii.org" class="footer-btn">CONTACT US</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Childhood Cancer Research Trust. All rights reserved.</p>
+            <a href="privacy-policy.html" class="privacy-link">Privacy Policy</a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="scripts/particles-config.js"></script>
+    <script src="scripts/registration.js"></script>
+    <script src="scripts/navigation.js"></script>
+</body>
+</html>
