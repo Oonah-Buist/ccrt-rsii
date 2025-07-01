@@ -120,6 +120,11 @@ body {
     filter: saturate(0.95) hue-rotate(-3deg);
 }
 
+/* Homepage specific hero - extend to show more of the original photo */
+body.homepage .hero-section {
+    height: 85vh;
+}
+
 .hero-overlay {
     position: absolute;
     top: 0;
