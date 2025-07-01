@@ -117,6 +117,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    filter: saturate(0.95) hue-rotate(-3deg);
 }
 
 .hero-overlay {
@@ -179,6 +180,14 @@ body {
         var(--light-purple),
         var(--light-blue)
     );
+}
+
+/* Paradigm Overlay - sits directly on particle background */
+.paradigm-overlay {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: transparent;
 }
 
 .container {
@@ -554,9 +563,10 @@ body {
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
-    color: var(--purple);
+    color: var(--white);
     margin: 2rem 0;
     letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .page-subtitle {
@@ -578,6 +588,7 @@ body {
     background-attachment: fixed;
     position: relative;
     min-height: 50vh;
+    filter: saturate(0.95) hue-rotate(-3deg);
 }
 
 .content-overlay {
@@ -636,7 +647,8 @@ body {
 .rsi-item img {
     width: 100%;
     max-width: 200px;
-    height: auto;
+    height: 150px;
+    object-fit: cover;
     border-radius: 8px;
     margin-bottom: 1rem;
 }
@@ -648,6 +660,15 @@ body {
     color: var(--purple);
     margin-bottom: 1rem;
     letter-spacing: 1px;
+}
+
+.rsi-subtitle {
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 1rem;
+    letter-spacing: 0.5px;
 }
 
 .rsi-description {
