@@ -1,0 +1,230 @@
+Please create a website for the CCRT-RSII Initiative. 
+8 visible pages plus 2 hidden pages which are reached via links.
+Style:
+The overall look should be modern, clean, light mode, suitable for a scientific laboratory atmosphere.
+Each page has a top banner with jpg 3-colour-logo-1 on the left at the start of the banner followed by the following page names in a horizontal menu in small bold capitals
+CCRT RSII 
+RSII Initiative
+Objects
+Participant application
+Contact us
+Participant login
+BAA
+(pages not on the menu are (1) Participant registration which will be accessed via an invitation link sent to a prospective participant, (2) Privacy policy which will be accessed via a link in the footer – see below)
+Headings in capitals, subheadings in smaller capitals
+Font: Ariel
+Text colour choices: purple: #a57ddc, blue: #1dc6e2, grey: #8F8484, black: #000000
+Colour scheme: purple: #a57ddc, blue: #1dc6e2, grey: #8F8484 and shades of these three colours
+Use a polygon particle background for some part of the website or for a repeating part of the website.
+
+Create a footer at the bottom of every page with the following:
+Childhood Cancer Research Trust
+Registered in England & Wales 
+with Charity No. 1196005
+INSERT: Button that links to www.ccrt.uk
+Donate button that links to
+https://childhoodcancerresearchtrust.org/product/donation/)
+RSII Initiative of the Childhood Cancer Research Trust button that links to page 2
+Contact us button that opens email window for contact@ccrt-rsii.org
+at the very bottom of the footer write:
+© 2024 Childhood Cancer Research Trust. All rights reserved.
+Privacy policy (with link to a page containing the text called “User and Participant Registration Privacy Policy” at the end of this prompt)
+
+ 
+Each page will have an image. This image can be used in its entirety or in part either as background or foreground or both.
+PAGE 1
+Use the image: milky-way-1023340-1-scaled
+CCRT RSII Initiative
+It isn’t possible… until it is
+ARC ParadigmTM
+an initiative focused on normal health in cancer
+Focusing on your underlying health
+Supporting intrinsic health in a body hijacked by cancer. If individuals aren’t compromised does cancer still kill? Is cancer prognosis a facet of health?
+Tumour profiling & characterisation
+Encyclopaedic mapping of your cancer’s wiring, its genetics, mutations, cytoskeletal, DNA, RNA, molecular & metabolic features. A lot about genotype, a lot about phenotypes. A lot.
+Mainstream treatment support
+Wholly supporting the crucial work of your oncologists. Can treatments be less eventful / more successful / actually tolerable with more health?
+Extensive individual mapping & profiling
+Unparalleled typing of your ‘omics’ including genomics, metabolomics, microbiome, proteomics…. Organ systems. Body systems. Signalling systems. And everything.
+Onco-immunology
+Capitalising on 30+ years of groundbreaking R&D for optimising anti-cancer immunity, we’re interested in the individual’s own backdrop & the environment it creates.
+Psycho-neuroendoimmunology
+PEONIITM – our proprietary world-leading insights into the complex science of PNEI, & unique ability to use it. It’s all about stress-related facets of disease & health, including the biological (& mental) stress imposed on an individual by cancer. It changes everything. So does it deter normalcy in cancer?
+We’re interested in how elements, interactions & communications in cancer impair normalcy.
+
+You’re not static and neither are we.
+INSERT jpg: wave and surfer
+
+
+ 
+PAGE 2
+RSII Initiative
+Use image: Star-19
+ARC ParadigmTM
+Is there a whole other dimension to engage?
+The past few decades have seen an exponential rise in our appreciation of how cancer cells differ from normal cells. Increasing numbers of TARGETED PRECISION MEDICINES have been developed which have greatly added to the options available for cancer treatments. These use as targets, unique molecular properties of cancer.
+IMMUNOTHERAPY meanwhile, looks to exploit mechanisms by which the body's immune system can attack and eliminate cancer cells.
+ARC
+The ARC Paradigm® is focused on something quite different. We are interested in features of NORMALCY that are lost in cancer that might be regained. The postulation is that these facets of normal-ness may affect the operational 'milieu' of a cancer and the environment in which immunotherapy, and an individual's immunology more widely, can work.
+Through the CCRT's RSII™ Initiative, we first look to create new insights that can yield new knowledge, from which new avenues for clinical options might hypothetically eventually be generated. But not until we know what the 'right questions' would even be!
+At this very initial stage, via the CCRT's RSII™ Initiative, we are undertaking a process of divergent thinking about facets of health that might be supported, tested and mapped in an individual, in the context of cancer. And developing ever more questions about what these might, perhaps, mean to the individual's ability to fight cancer, survive and, may be, live with cancer. Which may be important given that 1 in 2 of us can expect to develop cancer during our lifetimes.
+Is there an optimal way to 'be successful' with cancer, through health?
+RSII
+Because this Initiative is about creating new Intelligence, it follows our own RSII™ Algorithms and Protocols, in which we undertake an elaborate and extensive process of reconnaissance, surveillance and interrogation.
+INSERT image: reconnaissance
+Reconnaissance
+Ascertaining the lay of the land.
+A preliminary survey to gain pertinent information, especially an exploratory survey of enemy territory. Reconnaissance collects information, or confirms or disproves the accuracy of insights or suspicions previously gained. The intent is to avoid enemy contact and accomplish its tactical task without engaging in close combat.
+INSERT image: surveillance photo
+Surveillance
+Watching the signaling.
+The duty or function of watching or guarding, for the sake of proper direction. Scrutiny to eventually attain 'superintendence'.
+INSERT image: interrogation photo
+Interrogation
+Questioning the implications.
+The process of asking many questions for a long time in order to gain information.
+ARC Thesis®
+Will there ever be a time when we can make cancers lose the hallmark features that make them cancer, and simply become more normal? How best can we consider what might indeed one day make normalcy more possible, more probable? We can start by working out how to create a focus and framework for what must, most importantly, be normal, in any given individual who has cancer.
+ 
+PAGE 3
+Objects
+Use image: star-24-scaled
+Childhood cancer research trust charitable objects
+To relieve sickness and to preserve and protect health for the public benefit by
+PROVIDING FUNDING FOR CHILDHOOD CANCER RESEARCH PROJECTS PRINCIPALLY IN THE UK IN ORDER TO 
+IMPROVE OUTCOMES FOR CHILDHOOD CANCER SUFFERERS BY FINDING SAFER AND MORE EFFECTIVE TREATMENTS AT A FASTER RATE.
+Strategic process
+The Childhood Cancer Research Trust invites participants to support the CCRT RSII Initiative by both
+•	financing the Initiative (Programme Funding) and
+•	donating the data collected
+The Initiative strives to support health and identify what could make for more normalcy in the context of cancer. Although the Participant Programmes do not offer proven benefits, the Childhood Cancer Research Trust believes that the generous funding of the Initiative by participants and donated data will contribute immeasurably to New Knowledge Creation from which we can assess, validate and disseminate improved treatments for children with cancer.
+INSERT jpg: Strategic-process-3
+ 
+PAGE 4
+Participant application
+Use image: Star-21-Copy-1-scaled
+This page will have an embedded jot form 
+PAGE 5
+USE IMAGE: Star-16-scaled
+Contact us
+Create contact form that links to contact@ccrt-rsii.org
+PAGE 6
+USE IMAGE: Star-4-2
+Participant login
+Create a login form with a password input field that includes a password visibility toggle. No login name, only password
+PAGE 7
+BAA
+USE IMAGE: s-1
+Create a login form with a password input field that includes a password visibility toggle
+No login name, only password
+ 
+“User and Participant Registration Privacy Policy
+Effective date: 1st day of January, 2024
+www.CCRT-RSII.org (the "Site") is owned and operated by CCRT-RSII Initiative.
+
+The CCRT-RSII Initiative is the data controller and can be contacted at:
+contact@CCRT-RSII.org
+
+________________________________________
+Privacy Policy
+The purpose of this privacy policy (this "Privacy Policy") is to inform users of our Site of the following:
+1.	The personal data we will collect;
+2.	Use of collected data;
+3.	Who has access to the data collected;
+4.	The rights of Site users; and
+5.	The Site's cookie policy.
+This Privacy Policy applies in addition to the Terms and Conditions of our Site.
+GDPR
+For users in the European Union, we adhere to the Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016, known as the General Data Protection Regulation (the "GDPR"). For users in the United Kingdom, we adhere to the GDPR as enshrined in the Data Protection Act 2018.
+
+We have not appointed a Data Protection Officer as we do not fall within the categories of controllers and processors required to appoint a Data Protection Officer under Article 37 of the GDPR.
+Consent
+By using our Site users agree that they consent to the conditions set out in this Privacy Policy, as follows:
+1.	Information Collected: we collect data from our that has been submitted by the user, such as name, email address. In addition we may collect IP address, location data, etc.
+2.	Collection Methods: Information is principally collected through registration forms and directly from users, but also through cookies, web beacons, and so on.
+3.	Purpose of Collection: The information is collected to provide services, improve the website, and personalize user experience. Our principal Legal Basis for processing is detailed below.
+4.	Use of Information: The collected information will be used for analytics and personalization, however the principal use is for communication, and to fulfil user requests.
+5.	Sharing of Information: We share user information with third party providers of laboratory services and courier plus postal services, which is implied when you agree to those services and delivery of kits or collection of samples. Asides from that we do not share user information with third parties.
+6.	Data Retention: The retention period is determined by the specifics of the interaction between the CCRT-RSII Initiative and the Participant, and detailed below.
+7.	User Rights: Users have rights regarding their personal information, such as the right to access, update, or delete their data. These are detailed below.
+8.	Security Measures: We adhere to the strictest security measures to protect user information from unauthorized access, disclosure, alteration, or destruction, including as detailed below.
+9.	Third-Party Links: Any links to third-party websites or services are not covered by our privacy policy which does not apply to those sites. We advise that you determine the privacy policy of any third-party sites that you visit, including from any links from this site.
+10.	Children's Privacy: We do not interact with any children directly. Any child's data is provided to us by the parents who in so doing consent to us handling the information in accordance with our strict privacy policy.
+11.	Updates to the Privacy Policy: Reserve the right to update or revise the privacy policy and specify how users will be notified of changes.
+12.	Contact Information: We provide contact details for users to reach out with questions, concerns, or requests related to their privacy, as shown here.
+13.	Legal Basis for Processing: The legal basis for processing personal data, includes user consent, legitimate interests, or compliance with legal obligations.
+14.	International Data Transfers: We do not operate in multiple jurisdictions, therefore data is not transferred across borders. The exception is if we order laboratory tests from abroad on your behalf, for which we have mechanisms for ensuring adequacy or safeguards by our judicious selection of third-party service providers whose own privacy policies adhere to our standards, and for which we use secure HIPAA-compliant portals to log user information for services to be provided. Where applicable we hold BAAs.
+15.	GDPR Compliance: Please see details below.
+Withdrawal of consent
+When the legal basis for us processing your personal data is that you have provided your consent to that processing, you may withdraw your consent at any time. If you withdraw your consent, it will not make processing which we completed before you withdrew your consent unlawful.
+You can withdraw your consent by:
+Contacting us at contact@CCRT-RSII.org.
+Legal Basis for Processing
+We collect and process personal data about users in the EU only when we have a legal basis for doing so under Article 6 of the GDPR.
+
+We rely on the following legal bases to collect and process the personal data of users in the UK/EU:
+1.	Users have provided their consent to the processing of their data for one or more specific purposes; and
+2.	Processing of user personal data is necessary for us to take, at the request of a user, steps before entering a contract or for the performance of a contract to which a user is a party. If a user does not provide the personal data necessary to perform a contract the consequences are as follows: we are unable to proceed with the Participant's Programme.
+Personal Data We Collect
+We only collect data that helps us achieve the purpose set out in this Privacy Policy. We will not collect any additional data beyond the data listed below without notifying you first.
+Data Collected in a Non-Automatic Way
+We may also collect data when you perform certain functions on our Site, however the following data are provided by the user for the explicit purposes of enabling us to consider an application, or undertake processes, or provide services:
+1.	First and last name
+2.	Age
+3.	Date of birth
+4.	Sex
+5.	Email address
+6.	Phone number
+This data may be collected during the following processes:
+1.	Registering as an Applicant
+2.	Registering as a Participant
+3.	Creating a user account.
+How We Use Personal Data
+Data collected on our Site will only be used for the purposes specified in this Privacy Policy or indicated on the relevant pages of our Site. We will not use your data beyond what we disclose in this Privacy Policy.
+Non-automatic data we collect when the user performs certain functions may only be used for the following purposes:
+Identification, processing information, service provision, and communication.
+Who We Share Personal Data With
+We may disclose user data to any member of our organisation who reasonably needs access to user data to achieve the purposes set out in this Privacy Policy. However privileged user data is only accessible to the Principals & Principal Provider/s involved in managing and conducting the Initiative, except as detailed here, via your implied or explicit consent.
+Other Disclosures:
+We will not sell or share your data with other third parties, except in the following cases:
+1.	If the law requires it;
+2.	If it is required for any legal proceeding;
+3.	To prove or protect our legal rights; and
+4.	In emergency situations where, as responsible observers and bystanders, we have realised the need.
+If you follow hyperlinks from our Site to another site, please note that we are not responsible for and have no control over their privacy policies and practices.
+How Long We Store Personal Data
+User data will be stored for until the purpose of the collection has been achieved or, if accepted, up to 15 years.
+You will be notified if your data is kept for longer than this period.
+How We Protect Your Data
+In order to protect your security, we use the strongest available browser encryption and store all of our data on servers in secure, HIPAA-compliant facilities, with end-to-end encryption of transmitted data.
+
+While we take all reasonable precautions to ensure that user data is secure and that users are protected, there always remains the risk of data infringement when using the internet. The Internet as a whole can be insecure at times and therefore we are unable to guarantee the security of user data beyond what is reasonably practical.
+Your Rights as a User
+Under the GDPR, you have the following rights:
+1.	Right to be informed;
+2.	Right of access;
+3.	Right to rectification;
+4.	Right to erasure;
+5.	Right to restrict processing;
+6.	Right to data portability; and
+7.	Right to object.
+Children
+We do not knowingly collect personal data from children under 18 years of age. If we learn that we have collected personal data from a child under 18 years of age, the personal data will be deleted as soon as possible. If a parent suspects that a child under 18 years of age has provided us with personal data, their parent or guardian must immediately contact our privacy officer. 
+How to Access, Modify, Delete, or Challenge the Data
+If you would like to know if we have collected your personal data, how we have used your personal data, if we have disclosed your personal data and to who we disclosed your personal data, or if you would like your data to be deleted or modified in any way, or if you would like to exercise any of your other rights under the GDPR, please contact our CCRT-RSII Privacy Officer here:
+
+contact@CCRT-RSII.org
+Cookie Policy
+A cookie is a small file, stored on a user's hard drive by a website. Its purpose is to collect data relating to the user's browsing habits. You can choose to be notified each time a cookie is transmitted. You can also choose to disable cookies entirely in your internet browser, but this may decrease the quality of your user experience.
+We use the following types of cookies on our Site:
+1.	Functional cookies
+Functional cookies are used to remember the selections you make on our Site so that your selections are saved for your next visits; and
+2.	Analytical cookies
+Analytical cookies allow us to improve the design and functionality of our Site by collecting data on how you access our Site, for example data on the content you access, how long you stay on our Site, etc.
+Modifications to Our Policy
+This Privacy Policy may be amended from time to time in order to maintain compliance with the law and to reflect any changes to our data collection process. When we amend this Privacy Policy we will update the "Effective Date" at the top of this Privacy Policy. We recommend that our users periodically review our Privacy Policy to ensure that they are notified of any updates. If necessary, we may notify users by email of changes to this Privacy Policy.
+Complaints
+If you have any complaints about how we process your personal data, please contact us through the contact methods listed in the Contact Information section so that we can, where possible, resolve the issue. If you feel we have not addressed your concern in a satisfactory manner you may contact a supervisory authority. You also have the right to directly make a complaint to a supervisory authority. You can lodge a complaint with a supervisory authority by contacting the Information Commissioner's Office UK.
+Contact Information
+If you have any questions, concerns or complaints, you can contact our privacy officer, CCRT-RSII Privacy Officer, at:
+contact@CCRT-RSII.org”
