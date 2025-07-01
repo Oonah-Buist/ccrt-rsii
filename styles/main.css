@@ -217,6 +217,14 @@ body {
     border-left-color: var(--grey);
 }
 
+.feature-card:nth-child(4) {
+    border-left-color: var(--grey);
+}
+
+.feature-card:nth-child(6) {
+    border-left-color: var(--blue);
+}
+
 .feature-title {
     font-size: 1.2rem;
     font-weight: bold;
@@ -232,6 +240,14 @@ body {
 
 .feature-card:nth-child(3n) .feature-title {
     color: var(--grey);
+}
+
+.feature-card:nth-child(4) .feature-title {
+    color: var(--grey);
+}
+
+.feature-card:nth-child(6) .feature-title {
+    color: var(--blue);
 }
 
 .feature-description {
@@ -275,10 +291,12 @@ body {
 
 /* Footer */
 .footer {
-    background: linear-gradient(135deg, var(--grey), var(--black));
-    color: var(--white);
+    background: var(--white);
+    color: var(--black);
     padding: 3rem 0 1rem;
     margin-top: 4rem;
+    border-top: 2px solid var(--light-grey);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .footer-content {
@@ -296,6 +314,12 @@ body {
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+.footer-logo {
+    height: 50px;
+    width: auto;
+    margin-bottom: 0.5rem;
 }
 
 .footer-buttons {
@@ -333,7 +357,7 @@ body {
 }
 
 .footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid var(--light-grey);
     margin-top: 2rem;
     padding-top: 1rem;
     text-align: center;
@@ -345,10 +369,11 @@ body {
     margin-right: auto;
     padding-left: 2rem;
     padding-right: 2rem;
+    color: var(--grey);
 }
 
 .privacy-link {
-    color: var(--white);
+    color: var(--purple);
     text-decoration: none;
     font-size: 0.9rem;
 }
