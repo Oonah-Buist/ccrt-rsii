@@ -414,7 +414,8 @@ body.homepage .hero-section {
     right: 0;
     background: var(--white);
     border: 2px solid var(--purple);
-    border-radius: 6px;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     min-width: 160px;
     z-index: 1000;
@@ -422,6 +423,16 @@ body.homepage .hero-section {
     padding: 0;
     margin: 0;
     margin-top: 6px;
+}
+
+.dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 100px;
+    height: 2px;
+    background: var(--purple);
 }
 
 .dropdown-menu li {
