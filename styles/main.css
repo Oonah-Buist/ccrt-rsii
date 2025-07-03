@@ -798,3 +798,13 @@ body.participant-application .content-overlay {
     margin: 0;
     box-shadow: none;
 }
+
+/* Privacy Policy Specific Styles */
+.privacy-policy-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--black);
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
