@@ -36,11 +36,13 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const password = document.getElementById('baaPassword').value;
             
-            // This is a placeholder - you would implement actual authentication
-            if (password) {
-                alert('BAA access functionality would be implemented here with proper backend authentication.');
-                // Redirect to BAA dashboard or protected area
-                // window.location.href = 'baa-dashboard.html';
+            // Check for fixed password
+            if (password === '12345678') {
+                // Redirect to BAA form page
+                window.location.href = 'baa-form.html';
+            } else {
+                alert('Invalid password. Please try again.');
+                document.getElementById('baaPassword').value = '';
             }
         });
     }
