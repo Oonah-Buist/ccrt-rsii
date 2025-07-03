@@ -245,7 +245,7 @@ body.homepage .hero-section {
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--purple);
-    margin-bottom: 1rem;
+    margin: 2rem 0 0 0;
 }
 
 .feature-card:nth-child(even) .feature-title {
@@ -680,7 +680,7 @@ body.homepage .hero-section {
     font-weight: bold;
     text-transform: uppercase;
     color: var(--blue);
-    margin: 1.5rem 0;
+    margin: 2rem 0 0 0;
     letter-spacing: 1px;
 }
 
@@ -807,4 +807,15 @@ body.participant-application .content-overlay {
     color: var(--black);
     margin-bottom: 1.5rem;
     text-align: left;
+}
+
+/* Privacy Policy List Alignment */
+.privacy-policy ol {
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.privacy-policy ol li {
+    margin-left: 1.5rem;
+    padding-left: 0.5rem;
 }
