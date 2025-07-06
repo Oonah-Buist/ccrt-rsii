@@ -130,10 +130,16 @@ class AdminConsole {
                     button: 'Button photos/Button 10.jpg'
                 },
                 {
-                    id: 'medical-history-5',
-                    name: 'Medical History 5',
+                    id: 'medical-history-5-f',
+                    name: 'Medical History 5 (F)',
                     script: 'https://form.jotform.com/jsform/240980062647358',
                     button: 'Button photos/Button 11.jpg'
+                },
+                {
+                    id: 'medical-history-5-m',
+                    name: 'Medical History 5 (M)',
+                    script: 'https://form.jotform.com/jsform/240980848706366',
+                    button: 'Button photos/Button 12.jpg'
                 }
             ];
             localStorage.setItem('portalForms', JSON.stringify(this.forms));
