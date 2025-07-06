@@ -237,7 +237,12 @@ class ParticipantPortal {
                     <script type="text/javascript" src="${form.script}"></script>
                     <script>
                         // Function to mark form as submitted
+                        let hasBeenSubmitted = false;
                         function markFormAsSubmitted() {
+                            // Prevent double submission
+                            if (hasBeenSubmitted) return;
+                            hasBeenSubmitted = true;
+                            
                             const submission = {
                                 participantId: '${this.currentParticipant.id}',
                                 formId: '${formId}',
@@ -263,27 +268,47 @@ class ParticipantPortal {
                         
                         // Check if form gets submitted by monitoring for success messages
                         let checkCount = 0;
-                        const checkForSubmission = setInterval(() => {
-                            checkCount++;
-                            
-                            // Check for success messages or redirect indicators
-                            const successElements = document.querySelectorAll('[class*="success"], [class*="thank"], [id*="success"], [id*="thank"], .form-thank-you, .jotform-success');
-                            const thankYouText = document.body.textContent.toLowerCase();
-                            
-                            if (successElements.length > 0 || 
-                                thankYouText.includes('thank you') || 
-                                thankYouText.includes('submitted') ||
-                                thankYouText.includes('success') ||
-                                thankYouText.includes('form has been submitted')) {
-                                clearInterval(checkForSubmission);
-                                markFormAsSubmitted();
-                            }
-                            
-                            // Stop checking after 5 minutes
-                            if (checkCount > 300) {
-                                clearInterval(checkForSubmission);
-                            }
-                        }, 1000);
+                        let formHasBeenInteracted = false;
+                        
+                        // Wait 5 seconds before starting to check for submissions
+                        // This prevents false positives from cached content
+                        setTimeout(() => {
+                            const checkForSubmission = setInterval(() => {
+                                checkCount++;
+                                
+                                // Only check for success if user has interacted with the form
+                                if (formHasBeenInteracted) {
+                                    const successElements = document.querySelectorAll('[class*="success"], [class*="thank"], [id*="success"], [id*="thank"], .form-thank-you, .jotform-success');
+                                    const thankYouText = document.body.textContent.toLowerCase();
+                                    
+                                    if (successElements.length > 0 || 
+                                        thankYouText.includes('thank you for your submission') || 
+                                        thankYouText.includes('form has been submitted') ||
+                                        thankYouText.includes('submission received')) {
+                                        clearInterval(checkForSubmission);
+                                        markFormAsSubmitted();
+                                    }
+                                }
+                                
+                                // Stop checking after 5 minutes
+                                if (checkCount > 300) {
+                                    clearInterval(checkForSubmission);
+                                }
+                            }, 1000);
+                        }, 5000);
+                        
+                        // Track form interaction
+                        setTimeout(() => {
+                            const formElements = document.querySelectorAll('input, select, textarea, button[type="submit"]');
+                            formElements.forEach(element => {
+                                element.addEventListener('change', () => {
+                                    formHasBeenInteracted = true;
+                                });
+                                element.addEventListener('click', () => {
+                                    formHasBeenInteracted = true;
+                                });
+                            });
+                        }, 2000);
                         
                         // Add a manual "Mark as Complete" button for fallback
                         setTimeout(() => {
@@ -353,6 +378,16 @@ class ParticipantPortal {
         console.log('Submissions for this participant:', 
             this.submissions.filter(sub => sub.participantId === this.currentParticipant.id)
         );
+    }
+
+    // Debug method to clear submissions for current participant only
+    clearMySubmissions() {
+        const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+        const otherSubmissions = submissions.filter(sub => sub.participantId !== this.currentParticipant.id);
+        localStorage.setItem('formSubmissions', JSON.stringify(otherSubmissions));
+        this.loadSubmissions();
+        this.renderForms();
+        console.log('Cleared submissions for current participant only');
     }
 }
 
