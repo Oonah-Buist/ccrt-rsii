@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participant Registration Form - CCRT RSII</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(to bottom, var(--light-purple), var(--light-blue));
+            min-height: 100vh;
+        }
+        .form-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .form-header { 
+            text-align: center; 
+            margin-bottom: 2rem; 
+        }
+        .back-btn { 
+            background: var(--purple); 
+            color: white; 
+            border: none; 
+            padding: 0.75rem 2rem; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background: var(--blue);
+        }
+        .form-title {
+            color: var(--purple);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <button class="back-btn" onclick="window.close()">← Back to Portal</button>
+            <h1 class="form-title">Participant Registration Form</h1>
+        </div>
+        <script type="text/javascript" src="https://form.jotform.com/jsform/240416281252347"></script>
+        <script>
+            // Listen for form submission
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'form_submission') {
+                    // Mark form as submitted
+                    const submission = {
+                        participantId: localStorage.getItem('currentParticipant') ? JSON.parse(localStorage.getItem('currentParticipant')).id : 'unknown',
+                        formId: 'participant-registration',
+                        submittedAt: new Date().toISOString()
+                    };
+                    
+                    const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+                    submissions.push(submission);
+                    localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+                    
+                    alert('Form submitted successfully!');
+                    window.close();
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

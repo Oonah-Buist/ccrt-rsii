@@ -1,0 +1,153 @@
+/* Portal Styles */
+.portal-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.participant-info {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.form-description {
+    font-size: 1.1rem;
+    color: var(--grey);
+    margin-bottom: 1.5rem;
+}
+
+.logout-container {
+    margin-top: 1.5rem;
+}
+
+.logout-btn {
+    background: var(--purple);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: var(--blue);
+    transform: translateY(-2px);
+}
+
+.forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.form-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+}
+
+.form-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.form-card.completed {
+    background: rgba(165, 125, 220, 0.1);
+    border: 2px solid var(--purple);
+}
+
+.form-card.completed::after {
+    content: "✓ COMPLETED";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--purple);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.form-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-image:hover {
+    transform: scale(1.05);
+}
+
+.form-card.completed .form-image {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.form-card.completed .form-image:hover {
+    transform: none;
+}
+
+.form-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--purple);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.form-card.completed .form-title {
+    color: var(--grey);
+}
+
+.form-status {
+    font-size: 0.9rem;
+    color: var(--grey);
+    font-style: italic;
+}
+
+.form-card.completed .form-status {
+    color: var(--purple);
+    font-weight: bold;
+}
+
+/* Loading States */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--grey);
+}
+
+.error {
+    background: rgba(255, 0, 0, 0.1);
+    color: #d32f2f;
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .forms-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .portal-content {
+        padding: 1rem;
+    }
+}

@@ -20,11 +20,18 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const password = document.getElementById('participantPassword').value;
             
-            // This is a placeholder - you would implement actual authentication
-            if (password) {
-                alert('Login functionality would be implemented here with proper backend authentication.');
-                // Redirect to participant dashboard or protected area
-                // window.location.href = 'participant-dashboard.html';
+            // Load participants from localStorage
+            const participants = JSON.parse(localStorage.getItem('participants') || '[]');
+            const participant = participants.find(p => p.password === password);
+            
+            if (participant) {
+                // Store current participant in localStorage
+                localStorage.setItem('currentParticipant', JSON.stringify(participant));
+                // Redirect to participant portal
+                window.location.href = 'participant-portal.html';
+            } else {
+                alert('Invalid password. Please try again.');
+                document.getElementById('participantPassword').value = '';
             }
         });
     }

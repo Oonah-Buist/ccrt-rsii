@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console - CCRT RSII</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/particles.css">
+    <link rel="stylesheet" href="styles/admin.css">
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <img src="Assets/3-colour-logo-1.jpg" alt="CCRT Logo" class="logo">
+            </div>
+            <div class="admin-title">
+                <h2>ADMIN CONSOLE</h2>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="content-section">
+            <div class="container">
+                <div class="admin-panel">
+                    <h1 class="page-title">Participant Management</h1>
+                    
+                    <div class="admin-tabs">
+                        <button class="tab-btn active" data-tab="participants">Participants</button>
+                        <button class="tab-btn" data-tab="forms">Forms</button>
+                        <button class="tab-btn" data-tab="submissions">Submissions</button>
+                    </div>
+
+                    <!-- Participants Tab -->
+                    <div class="tab-content active" id="participants">
+                        <div class="section-header">
+                            <h2>Participant Management</h2>
+                            <button class="add-btn" id="addParticipantBtn">Add New Participant</button>
+                        </div>
+                        
+                        <div class="participant-form" id="participantForm" style="display: none;">
+                            <h3>Add/Edit Participant</h3>
+                            <form id="participantFormElement">
+                                <div class="form-group">
+                                    <label for="participantName">Participant Name:</label>
+                                    <input type="text" id="participantName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="participantPassword">Password:</label>
+                                    <input type="text" id="participantPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Assigned Forms:</label>
+                                    <div class="forms-checklist" id="formsChecklist">
+                                        <!-- Will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit">Save Participant</button>
+                                    <button type="button" id="cancelBtn">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="participants-list" id="participantsList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Forms Tab -->
+                    <div class="tab-content" id="forms">
+                        <div class="section-header">
+                            <h2>Available Forms</h2>
+                            <button class="add-btn" id="addFormBtn">Add New Form</button>
+                        </div>
+                        
+                        <div class="form-form" id="formForm" style="display: none;">
+                            <h3>Add New Form</h3>
+                            <form id="formFormElement">
+                                <div class="form-group">
+                                    <label for="formName">Form Name:</label>
+                                    <input type="text" id="formName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="formScript">JotForm Script:</label>
+                                    <textarea id="formScript" rows="3" required placeholder="<script type='text/javascript' src='https://form.jotform.com/jsform/...'></script>"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="formButton">Button Image:</label>
+                                    <select id="formButton" required>
+                                        <option value="">Select Button Image</option>
+                                        <option value="Button photos/Button 1.jpg">Button 1</option>
+                                        <option value="Button photos/Button 2.jpg">Button 2</option>
+                                        <option value="Button photos/Button 3.jpg">Button 3</option>
+                                        <option value="Button photos/Button 4.jpg">Button 4</option>
+                                        <option value="Button photos/Button 5.jpg">Button 5</option>
+                                        <option value="Button photos/Button 6.jpg">Button 6</option>
+                                        <option value="Button photos/Button 7.jpg">Button 7</option>
+                                        <option value="Button photos/Button 8.jpg">Button 8</option>
+                                        <option value="Button photos/Button 9.jpg">Button 9</option>
+                                        <option value="Button photos/Button 10.jpg">Button 10</option>
+                                        <option value="Button photos/Button 11.jpg">Button 11</option>
+                                        <option value="Button photos/Button 12.jpg">Button 12</option>
+                                        <option value="Button photos/Button 13.jpg">Button 13</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit">Add Form</button>
+                                    <button type="button" id="cancelFormBtn">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="forms-list" id="formsList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Submissions Tab -->
+                    <div class="tab-content" id="submissions">
+                        <h2>Form Submissions</h2>
+                        <div class="submissions-list" id="submissionsList">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="scripts/particles-config.js"></script>
+    <script src="scripts/admin.js"></script>
+</body>
+</html>
