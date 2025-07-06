@@ -17,6 +17,12 @@ class ParticipantPortal {
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => this.logout());
         }
+        
+        // Refresh forms when window gains focus (user returns from form)
+        window.addEventListener('focus', () => {
+            this.loadSubmissions();
+            this.renderForms();
+        });
     }
 
     loadParticipantData() {
@@ -230,24 +236,72 @@ class ParticipantPortal {
                     </div>
                     <script type="text/javascript" src="${form.script}"></script>
                     <script>
-                        // Listen for form submission
+                        // Function to mark form as submitted
+                        function markFormAsSubmitted() {
+                            const submission = {
+                                participantId: '${this.currentParticipant.id}',
+                                formId: '${formId}',
+                                submittedAt: new Date().toISOString()
+                            };
+                            
+                            const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+                            submissions.push(submission);
+                            localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+                            
+                            alert('Form submitted successfully! The form has been marked as complete.');
+                            window.close();
+                        }
+                        
+                        // Listen for JotForm submission events
                         window.addEventListener('message', function(event) {
-                            if (event.data.type === 'form_submission') {
-                                // Mark form as submitted
-                                const submission = {
-                                    participantId: '${this.currentParticipant.id}',
-                                    formId: '${formId}',
-                                    submittedAt: new Date().toISOString()
-                                };
-                                
-                                const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
-                                submissions.push(submission);
-                                localStorage.setItem('formSubmissions', JSON.stringify(submissions));
-                                
-                                alert('Form submitted successfully!');
-                                window.close();
+                            if (event.data.type === 'form_submission' || 
+                                event.data.type === 'form_submit' ||
+                                (event.data && event.data.includes && event.data.includes('submit'))) {
+                                markFormAsSubmitted();
                             }
                         });
+                        
+                        // Check if form gets submitted by monitoring for success messages
+                        let checkCount = 0;
+                        const checkForSubmission = setInterval(() => {
+                            checkCount++;
+                            
+                            // Check for success messages or redirect indicators
+                            const successElements = document.querySelectorAll('[class*="success"], [class*="thank"], [id*="success"], [id*="thank"], .form-thank-you, .jotform-success');
+                            const thankYouText = document.body.textContent.toLowerCase();
+                            
+                            if (successElements.length > 0 || 
+                                thankYouText.includes('thank you') || 
+                                thankYouText.includes('submitted') ||
+                                thankYouText.includes('success') ||
+                                thankYouText.includes('form has been submitted')) {
+                                clearInterval(checkForSubmission);
+                                markFormAsSubmitted();
+                            }
+                            
+                            // Stop checking after 5 minutes
+                            if (checkCount > 300) {
+                                clearInterval(checkForSubmission);
+                            }
+                        }, 1000);
+                        
+                        // Add a manual "Mark as Complete" button for fallback
+                        setTimeout(() => {
+                            const header = document.querySelector('.form-header');
+                            if (header) {
+                                const completeBtn = document.createElement('button');
+                                completeBtn.textContent = 'Mark as Complete';
+                                completeBtn.className = 'back-btn';
+                                completeBtn.style.backgroundColor = '#28a745';
+                                completeBtn.style.marginLeft = '1rem';
+                                completeBtn.onclick = function() {
+                                    if (confirm('Are you sure you want to mark this form as complete?')) {
+                                        markFormAsSubmitted();
+                                    }
+                                };
+                                header.appendChild(completeBtn);
+                            }
+                        }, 2000);
                     </script>
                 </div>
             </body>
@@ -263,6 +317,33 @@ class ParticipantPortal {
 
     redirectToLogin() {
         window.location.href = 'participant-login.html';
+    }
+
+    // Test method to manually mark a form as complete (for testing purposes)
+    markFormComplete(formId) {
+        const submission = {
+            participantId: this.currentParticipant.id,
+            formId: formId,
+            submittedAt: new Date().toISOString()
+        };
+        
+        const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+        submissions.push(submission);
+        localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+        
+        // Refresh the display
+        this.loadSubmissions();
+        this.renderForms();
+        
+        console.log('Form marked as complete:', formId);
+    }
+
+    // Test method to clear all submissions (for testing purposes)
+    clearAllSubmissions() {
+        localStorage.removeItem('formSubmissions');
+        this.loadSubmissions();
+        this.renderForms();
+        console.log('All submissions cleared');
     }
 }
 
