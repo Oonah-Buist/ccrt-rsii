@@ -43,9 +43,9 @@
 .forms-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    gap: 3rem;
     margin-top: 2rem;
-    padding: 2rem;
+    padding: 3rem;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
@@ -60,6 +60,8 @@
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
+    width: 100%;
+    max-width: 300px; /* Ensure consistent width for alignment */
 }
 
 .form-card:hover {
@@ -210,7 +212,8 @@
 @media (max-width: 768px) {
     .forms-grid {
         grid-template-columns: 1fr;
-        padding: 1.5rem;
+        padding: 2rem;
+        gap: 2rem;
     }
     
     .portal-content {
@@ -219,6 +222,11 @@
     
     .form-image-container {
         max-width: none;
+    }
+    
+    .form-card {
+        max-width: none; /* Remove width constraint on mobile */
+        justify-content: center; /* Center single column on mobile */
     }
     
     .form-title,
