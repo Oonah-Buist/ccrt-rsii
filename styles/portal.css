@@ -73,20 +73,6 @@
     opacity: 0.7;
 }
 
-.form-card.completed::after {
-    content: "✓ COMPLETED";
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: var(--purple);
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    z-index: 10;
-}
-
 .form-card.completed .form-image {
     cursor: not-allowed;
     filter: grayscale(30%);
