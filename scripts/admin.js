@@ -166,19 +166,24 @@ class AdminConsole {
         this.currentEditingParticipant = participant;
         const form = document.getElementById('participantForm');
         
+        // First render the forms checklist
+        this.renderFormsChecklist();
+        
         if (participant) {
             document.getElementById('participantName').value = participant.name;
             document.getElementById('participantPassword').value = participant.password;
-            // Set assigned forms checkboxes
-            const checkboxes = document.querySelectorAll('.forms-checklist input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = participant.assignedForms.includes(checkbox.value);
-            });
+            
+            // Set assigned forms checkboxes after rendering the checklist
+            setTimeout(() => {
+                const checkboxes = document.querySelectorAll('.forms-checklist input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = participant.assignedForms && participant.assignedForms.includes(checkbox.value);
+                });
+            }, 10);
         } else {
             document.getElementById('participantFormElement').reset();
         }
 
-        this.renderFormsChecklist();
         form.style.display = 'block';
     }
 
