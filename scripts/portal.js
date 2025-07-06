@@ -45,88 +45,82 @@ class ParticipantPortal {
     }
 
     loadForms() {
-        // Load available forms from localStorage
-        const savedForms = localStorage.getItem('portalForms');
-        if (savedForms) {
-            this.forms = JSON.parse(savedForms);
-        } else {
-            // Initialize with default forms
-            this.forms = [
-                {
-                    id: 'participant-registration',
-                    name: 'Participant Registration Form',
-                    script: 'https://form.jotform.com/jsform/240416281252347',
-                    button: 'Button photos/Button 1.jpg'
-                },
-                {
-                    id: 'approved-participant',
-                    name: 'Approved Participant Registration Form',
-                    script: 'https://form.jotform.com/jsform/240460766257359',
-                    button: 'Button photos/Button 2.jpg'
-                },
-                {
-                    id: 'non-disclosure',
-                    name: 'Non Disclosure Agreement',
-                    script: 'https://form.jotform.com/jsform/240420220855344',
-                    button: 'Button photos/Button 3.jpg'
-                },
-                {
-                    id: 'confidentiality-exceptions',
-                    name: 'Confidentiality Exceptions and Exemptions',
-                    script: 'https://form.jotform.com/jsform/240530846219354',
-                    button: 'Button photos/Button 4.jpg'
-                },
-                {
-                    id: 'spousal-confidentiality',
-                    name: 'Spousal Confidentiality Agreement',
-                    script: 'https://form.jotform.com/jsform/240532319527353',
-                    button: 'Button photos/Button 5.jpg'
-                },
-                {
-                    id: 'medical-history-1-f',
-                    name: 'Medical History 1 (F)',
-                    script: 'https://form.jotform.com/jsform/240978903718368',
-                    button: 'Button photos/Button 6.jpg'
-                },
-                {
-                    id: 'medical-history-1-m',
-                    name: 'Medical History 1 (M)',
-                    script: 'https://form.jotform.com/jsform/240979364404362',
-                    button: 'Button photos/Button 7.jpg'
-                },
-                {
-                    id: 'medical-history-2',
-                    name: 'Medical History 2',
-                    script: 'https://form.jotform.com/jsform/240978994174374',
-                    button: 'Button photos/Button 8.jpg'
-                },
-                {
-                    id: 'medical-history-3',
-                    name: 'Medical History 3',
-                    script: 'https://form.jotform.com/jsform/240978683543369',
-                    button: 'Button photos/Button 9.jpg'
-                },
-                {
-                    id: 'medical-history-4',
-                    name: 'Medical History 4',
-                    script: 'https://form.jotform.com/jsform/240980887791373',
-                    button: 'Button photos/Button 10.jpg'
-                },
-                {
-                    id: 'medical-history-5-f',
-                    name: 'Medical History 5 (F)',
-                    script: 'https://form.jotform.com/jsform/240980062647358',
-                    button: 'Button photos/Button 11.jpg'
-                },
-                {
-                    id: 'medical-history-5-m',
-                    name: 'Medical History 5 (M)',
-                    script: 'https://form.jotform.com/jsform/240980848706366',
-                    button: 'Button photos/Button 12.jpg'
-                }
-            ];
-            localStorage.setItem('portalForms', JSON.stringify(this.forms));
-        }
+        // Always load the latest forms (force update)
+        this.forms = [
+            {
+                id: 'participant-registration',
+                name: 'Participant Registration Form',
+                script: 'https://form.jotform.com/jsform/240416281252347',
+                button: 'Button photos/Button 1.jpg'
+            },
+            {
+                id: 'approved-participant',
+                name: 'Approved Participant Registration Form',
+                script: 'https://form.jotform.com/jsform/240460766257359',
+                button: 'Button photos/Button 2.jpg'
+            },
+            {
+                id: 'non-disclosure',
+                name: 'Non Disclosure Agreement',
+                script: 'https://form.jotform.com/jsform/240420220855344',
+                button: 'Button photos/Button 3.jpg'
+            },
+            {
+                id: 'confidentiality-exceptions',
+                name: 'Confidentiality Exceptions and Exemptions',
+                script: 'https://form.jotform.com/jsform/240530846219354',
+                button: 'Button photos/Button 4.jpg'
+            },
+            {
+                id: 'spousal-confidentiality',
+                name: 'Spousal Confidentiality Agreement',
+                script: 'https://form.jotform.com/jsform/240532319527353',
+                button: 'Button photos/Button 5.jpg'
+            },
+            {
+                id: 'medical-history-1-f',
+                name: 'Medical History 1 (F)',
+                script: 'https://form.jotform.com/jsform/240978903718368',
+                button: 'Button photos/Button 6.jpg'
+            },
+            {
+                id: 'medical-history-1-m',
+                name: 'Medical History 1 (M)',
+                script: 'https://form.jotform.com/jsform/240979364404362',
+                button: 'Button photos/Button 7.jpg'
+            },
+            {
+                id: 'medical-history-2',
+                name: 'Medical History 2',
+                script: 'https://form.jotform.com/jsform/240978994174374',
+                button: 'Button photos/Button 8.jpg'
+            },
+            {
+                id: 'medical-history-3',
+                name: 'Medical History 3',
+                script: 'https://form.jotform.com/jsform/240978683543369',
+                button: 'Button photos/Button 9.jpg'
+            },
+            {
+                id: 'medical-history-4',
+                name: 'Medical History 4',
+                script: 'https://form.jotform.com/jsform/240980887791373',
+                button: 'Button photos/Button 10.jpg'
+            },
+            {
+                id: 'medical-history-5-f',
+                name: 'Medical History 5 (F)',
+                script: 'https://form.jotform.com/jsform/240980062647358',
+                button: 'Button photos/Button 11.jpg'
+            },
+            {
+                id: 'medical-history-5-m',
+                name: 'Medical History 5 (M)',
+                script: 'https://form.jotform.com/jsform/240980848706366',
+                button: 'Button photos/Button 12.jpg'
+            }
+        ];
+        localStorage.setItem('portalForms', JSON.stringify(this.forms));
     }
 
     loadSubmissions() {
