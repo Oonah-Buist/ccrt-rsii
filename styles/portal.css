@@ -41,45 +41,40 @@
 }
 
 .forms-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 2rem;
     margin-top: 2rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
 }
 
 .form-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     position: relative;
-    width: 100%;
-    max-width: 800px;
-    min-height: 320px;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
 }
 
 .form-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
 }
 
 .form-card.completed {
-    background: rgba(165, 125, 220, 0.1);
-    border: 2px solid var(--purple);
+    opacity: 0.8;
 }
 
 .form-card.completed::after {
     content: "✓ COMPLETED";
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 5px;
+    right: 5px;
     background: var(--purple);
     color: white;
     padding: 0.25rem 0.5rem;
@@ -90,7 +85,8 @@
 
 .form-image-container {
     position: relative;
-    width: 300px;
+    width: 100%;
+    max-width: 300px;
     height: 250px;
     margin-bottom: 1rem;
 }
@@ -110,7 +106,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.3);
     color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 6px;
@@ -141,7 +137,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 300px;
+    width: 100%;
     position: relative;
 }
 
@@ -153,6 +149,11 @@
     text-transform: uppercase;
     text-align: left;
     width: 100%;
+    max-width: 300px; /* Match the image width */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.2;
 }
 
 .form-card.completed .form-title {
@@ -165,6 +166,10 @@
     font-style: italic;
     text-align: left;
     width: 100%;
+    max-width: 300px; /* Match the image width */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.2;
 }
 
 .form-card.completed .form-status {
@@ -191,10 +196,19 @@
 @media (max-width: 768px) {
     .forms-grid {
         grid-template-columns: 1fr;
-        max-width: 400px;
+        padding: 1.5rem;
     }
     
     .portal-content {
         padding: 1rem;
+    }
+    
+    .form-image-container {
+        max-width: none;
+    }
+    
+    .form-title,
+    .form-status {
+        max-width: none; /* Remove width constraint on mobile */
     }
 }
