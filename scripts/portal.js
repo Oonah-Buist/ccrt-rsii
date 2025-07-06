@@ -309,24 +309,6 @@ class ParticipantPortal {
                                 });
                             });
                         }, 2000);
-                        
-                        // Add a manual "Mark as Complete" button for fallback
-                        setTimeout(() => {
-                            const header = document.querySelector('.form-header');
-                            if (header) {
-                                const completeBtn = document.createElement('button');
-                                completeBtn.textContent = 'Mark as Complete';
-                                completeBtn.className = 'back-btn';
-                                completeBtn.style.backgroundColor = '#28a745';
-                                completeBtn.style.marginLeft = '1rem';
-                                completeBtn.onclick = function() {
-                                    if (confirm('Are you sure you want to mark this form as complete?')) {
-                                        markFormAsSubmitted();
-                                    }
-                                };
-                                header.appendChild(completeBtn);
-                            }
-                        }, 2000);
                     </script>
                 </div>
             </body>
