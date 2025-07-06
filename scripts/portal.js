@@ -145,16 +145,33 @@ class ParticipantPortal {
 
             const isSubmitted = this.isFormSubmitted(formId);
             const cardClass = isSubmitted ? 'form-card completed' : 'form-card';
+            const clickHandler = isSubmitted ? '' : `portal.openForm('${formId}')`;
+            const pointerEvents = isSubmitted ? 'pointer-events: none;' : '';
+            
+            // Get submission details if form is completed
+            let statusText = 'Ready to complete';
+            if (isSubmitted) {
+                const submission = this.submissions.find(sub => 
+                    sub.participantId === this.currentParticipant.id && 
+                    sub.formId === formId
+                );
+                if (submission) {
+                    const submissionDate = new Date(submission.submittedAt);
+                    statusText = `Submitted on ${submissionDate.toLocaleDateString()} at ${submissionDate.toLocaleTimeString()}`;
+                } else {
+                    statusText = 'Form has been submitted';
+                }
+            }
             
             return `
                 <div class="${cardClass}">
                     <div class="form-card-content">
-                        <div class="form-image-container" onclick="${isSubmitted ? '' : `portal.openForm('${formId}')`}">
+                        <div class="form-image-container" ${clickHandler ? `onclick="${clickHandler}"` : ''} style="${pointerEvents}">
                             <img src="${form.button}" alt="${form.name}" class="form-image">
                             <div class="form-overlay-text">${isSubmitted ? 'Completed ✓' : 'Click to Complete'}</div>
                         </div>
                         <h3 class="form-title">${form.name}</h3>
-                        <p class="form-status">${isSubmitted ? 'Form has been submitted' : 'Ready to complete'}</p>
+                        <p class="form-status">${statusText}</p>
                     </div>
                 </div>
             `;
@@ -171,6 +188,12 @@ class ParticipantPortal {
     }
 
     openForm(formId) {
+        // Check if form is already submitted
+        if (this.isFormSubmitted(formId)) {
+            alert('This form has already been completed and cannot be filled out again.');
+            return;
+        }
+
         const form = this.forms.find(f => f.id === formId);
         if (!form) return;
 

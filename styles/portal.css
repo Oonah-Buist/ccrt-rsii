@@ -67,7 +67,7 @@
 }
 
 .form-card.completed {
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
 .form-card.completed::after {
@@ -81,6 +81,20 @@
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: bold;
+    z-index: 10;
+}
+
+.form-card.completed .form-image {
+    cursor: not-allowed;
+    filter: grayscale(30%);
+}
+
+.form-card.completed:hover {
+    transform: none; /* Disable hover animation for completed forms */
+}
+
+.form-card.completed .form-image-container {
+    cursor: not-allowed;
 }
 
 .form-image-container {
