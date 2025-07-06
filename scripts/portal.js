@@ -345,6 +345,15 @@ class ParticipantPortal {
         this.renderForms();
         console.log('All submissions cleared');
     }
+
+    // Debug method to show current submissions
+    showSubmissions() {
+        console.log('Current participant:', this.currentParticipant);
+        console.log('All submissions:', this.submissions);
+        console.log('Submissions for this participant:', 
+            this.submissions.filter(sub => sub.participantId === this.currentParticipant.id)
+        );
+    }
 }
 
 // Initialize portal when page loads

@@ -215,7 +215,7 @@ class AdminConsole {
         }
 
         const participant = {
-            id: this.currentEditingParticipant ? this.currentEditingParticipant.id : Date.now().toString(),
+            id: this.currentEditingParticipant ? this.currentEditingParticipant.id : `participant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             name,
             password,
             assignedForms,
@@ -245,8 +245,15 @@ class AdminConsole {
 
     deleteParticipant(participantId) {
         if (confirm('Are you sure you want to delete this participant?')) {
+            // Remove the participant
             this.participants = this.participants.filter(p => p.id !== participantId);
             localStorage.setItem('participants', JSON.stringify(this.participants));
+            
+            // Clean up submissions for this participant
+            const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+            const cleanedSubmissions = submissions.filter(sub => sub.participantId !== participantId);
+            localStorage.setItem('formSubmissions', JSON.stringify(cleanedSubmissions));
+            
             this.renderParticipants();
         }
     }
