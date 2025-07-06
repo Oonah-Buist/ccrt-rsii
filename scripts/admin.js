@@ -24,6 +24,8 @@ class AdminConsole {
 
         // Add participant
         document.getElementById('addParticipantBtn').addEventListener('click', () => {
+            // Hide the add participant button
+            document.getElementById('addParticipantBtn').style.display = 'none';
             this.showParticipantForm();
         });
 
@@ -190,6 +192,9 @@ class AdminConsole {
     hideParticipantForm() {
         document.getElementById('participantForm').style.display = 'none';
         this.currentEditingParticipant = null;
+        
+        // Show the add participant button again
+        document.getElementById('addParticipantBtn').style.display = 'block';
     }
 
     renderFormsChecklist() {
