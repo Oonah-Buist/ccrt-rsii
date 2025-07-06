@@ -148,10 +148,14 @@ class ParticipantPortal {
             
             return `
                 <div class="${cardClass}">
-                    <img src="${form.button}" alt="${form.name}" class="form-image" 
-                         onclick="${isSubmitted ? '' : `portal.openForm('${formId}')`}">
-                    <h3 class="form-title">${form.name}</h3>
-                    <p class="form-status">${isSubmitted ? 'Completed' : 'Click to complete'}</p>
+                    <div class="form-card-content">
+                        <div class="form-image-container" onclick="${isSubmitted ? '' : `portal.openForm('${formId}')`}">
+                            <img src="${form.button}" alt="${form.name}" class="form-image">
+                            <div class="form-overlay-text">${isSubmitted ? 'Completed ✓' : 'Click to Complete'}</div>
+                        </div>
+                        <h3 class="form-title">${form.name}</h3>
+                        <p class="form-status">${isSubmitted ? 'Form has been submitted' : 'Ready to complete'}</p>
+                    </div>
                 </div>
             `;
         }).join('');
