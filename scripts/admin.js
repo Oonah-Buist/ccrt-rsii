@@ -165,12 +165,6 @@ class AdminConsole {
     showParticipantForm(participant = null) {
         this.currentEditingParticipant = participant;
         const form = document.getElementById('participantForm');
-        const addButton = document.getElementById('addParticipantBtn');
-        
-        // Hide the add participant button
-        if (addButton) {
-            addButton.style.display = 'none';
-        }
         
         // First render the forms checklist
         this.renderFormsChecklist();
@@ -196,12 +190,6 @@ class AdminConsole {
     hideParticipantForm() {
         document.getElementById('participantForm').style.display = 'none';
         this.currentEditingParticipant = null;
-        
-        // Show the add participant button again
-        const addButton = document.getElementById('addParticipantBtn');
-        if (addButton) {
-            addButton.style.display = 'block';
-        }
     }
 
     renderFormsChecklist() {
