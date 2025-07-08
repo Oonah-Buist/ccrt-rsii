@@ -548,10 +548,14 @@ body.homepage .hero-section {
 
     .navbar {
         flex-direction: row;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         padding: 1rem 2rem;
         position: relative;
+    }
+
+    .nav-brand {
+        margin-left: 1rem;
     }
 
     .mobile-menu-toggle {
