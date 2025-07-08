@@ -533,9 +533,22 @@ body.homepage .hero-section {
 
     .navbar {
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         padding: 1rem 2rem;
+        position: relative;
+    }
+
+    .mobile-menu-toggle {
+        position: absolute;
+        right: 2rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .nav-brand .logo {
+        height: 50px;
+        width: auto;
     }
 
     .nav-link {
@@ -695,6 +708,8 @@ body.homepage .hero-section {
     position: relative;
     min-height: 50vh;
     filter: saturate(0.95) hue-rotate(-3deg);
+    margin-top: -100px;
+    padding-top: 100px;
 }
 
 .content-overlay {
