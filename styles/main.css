@@ -266,6 +266,19 @@ body.homepage .hero-section {
     color: var(--blue);
 }
 
+/* Specific feature title color overrides */
+.feature-title-grey {
+    color: var(--grey) !important;
+}
+
+.feature-title-blue {
+    color: var(--blue) !important;
+}
+
+.feature-title-purple {
+    color: var(--purple) !important;
+}
+
 .feature-description {
     color: var(--black);
     line-height: 1.7;
