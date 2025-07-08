@@ -118,6 +118,8 @@ body {
     align-items: center;
     justify-content: center;
     filter: saturate(0.95) hue-rotate(-3deg);
+    margin-top: -100px;
+    padding-top: 100px;
 }
 
 /* Homepage specific hero - extend to show more of the original photo */
