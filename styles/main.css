@@ -587,19 +587,19 @@ body.homepage .hero-section {
         gap: 1rem;
     }
 
-    /* Mobile background image adjustments to reduce zoom/blur */
+    /* Mobile background image adjustments to match vertical panel height */
     .hero-section {
-        background-size: 80%;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: scroll;
+        background-size: auto 100% !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: scroll !important;
     }
 
     .page-background {
-        background-size: 80%;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: scroll;
+        background-size: auto 100% !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: scroll !important;
     }
 }
 
