@@ -586,6 +586,21 @@ body.homepage .hero-section {
         flex-direction: column;
         gap: 1rem;
     }
+
+    /* Mobile background image adjustments to reduce zoom/blur */
+    .hero-section {
+        background-size: 80%;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: scroll;
+    }
+
+    .page-background {
+        background-size: 80%;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: scroll;
+    }
 }
 
 /* Form Styles */
