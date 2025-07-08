@@ -481,11 +481,13 @@ body.homepage .hero-section {
         border: none;
         box-shadow: none;
         background: var(--light-purple);
-        margin-top: 0;
-        border-radius: 0;
+        margin-top: 0.5rem;
+        border-radius: 6px;
+        padding: 0.5rem;
     }
     
-    .dropdown:hover .dropdown-menu {
+    .dropdown:hover .dropdown-menu,
+    .dropdown.active .dropdown-menu {
         display: block;
     }
     
@@ -494,8 +496,17 @@ body.homepage .hero-section {
         transition: transform 0.3s ease;
     }
     
-    .dropdown:hover .dropdown-toggle::after {
+    .dropdown:hover .dropdown-toggle::after,
+    .dropdown.active .dropdown-toggle::after {
         transform: rotate(180deg);
+    }
+
+    .dropdown-link {
+        display: block;
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        border-radius: 4px;
+        background: var(--white);
     }
 }
 
@@ -527,6 +538,8 @@ body.homepage .hero-section {
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         padding: 1rem;
         gap: 0.5rem;
+        max-height: 80vh;
+        overflow-y: auto;
     }
 
     .nav-menu.active {
