@@ -683,6 +683,13 @@ body.homepage .hero-section {
     }
 }
 
+/* Extra right margin for logo on very small screens to prevent overlap with hamburger menu */
+@media (max-width: 360px) {
+    .nav-brand .logo {
+        margin-right: 40px !important;
+    }
+}
+
 /* Additional mobile breakpoint for very small screens and bleeding panels */
 @media (max-width: 480px) {
     .feature-grid {
