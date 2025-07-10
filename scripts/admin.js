@@ -55,6 +55,43 @@ class AdminConsole {
             e.preventDefault();
             this.saveForm();
         });
+
+        // BAA Tab logic
+        const addBaaBtn = document.getElementById('addBaaBtn');
+        const baaForm = document.getElementById('baaForm');
+        const baaFormElement = document.getElementById('baaFormElement');
+        const cancelBaaBtn = document.getElementById('cancelBaaBtn');
+        const baaList = document.getElementById('baaList');
+
+        if (addBaaBtn) {
+            addBaaBtn.addEventListener('click', () => {
+                baaForm.style.display = 'block';
+                addBaaBtn.style.display = 'none';
+            });
+        }
+        if (cancelBaaBtn) {
+            cancelBaaBtn.addEventListener('click', () => {
+                baaForm.style.display = 'none';
+                addBaaBtn.style.display = 'block';
+                baaFormElement.reset();
+            });
+        }
+        if (baaFormElement) {
+            baaFormElement.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // For now, just add to the list visually (no backend)
+                const name = document.getElementById('baaName').value;
+                const email = document.getElementById('baaEmail').value;
+                const jotform = document.getElementById('baaJotform').value;
+                const entry = document.createElement('div');
+                entry.className = 'baa-entry';
+                entry.innerHTML = `<strong>${name}</strong> (${email})<br><em>JotForm:</em> <code>${jotform.replace(/</g, '&lt;')}</code>`;
+                baaList.appendChild(entry);
+                baaForm.style.display = 'none';
+                addBaaBtn.style.display = 'block';
+                baaFormElement.reset();
+            });
+        }
     }
 
     loadData() {
