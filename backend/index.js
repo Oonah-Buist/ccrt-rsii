@@ -21,7 +21,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false } // Set to true if using HTTPS
 }));
-
+app.use(express.static(path.join(__dirname, 'public')));
 // DB schema setup (run once)
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS admins (
