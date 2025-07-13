@@ -16,18 +16,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Participant Login Form
     const participantLoginForm = document.getElementById('participantLoginForm');
     if (participantLoginForm) {
-        participantLoginForm.addEventListener('submit', function(e) {
+        participantLoginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const password = document.getElementById('participantPassword').value;
-            
-            // Load participants from localStorage
-            const participants = JSON.parse(localStorage.getItem('participants') || '[]');
-            const participant = participants.find(p => p.password === password);
-            
-            if (participant) {
-                // Store current participant in localStorage
-                localStorage.setItem('currentParticipant', JSON.stringify(participant));
-                // Redirect to participant portal
+            // Use backend API for login
+            const resp = await fetch('/api/participant/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name: '', password }) // name is blank for now, update if you use usernames
+            });
+            if (resp.ok) {
                 window.location.href = 'participant-portal.html';
             } else {
                 alert('Invalid password. Please try again.');

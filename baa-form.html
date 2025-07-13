@@ -45,8 +45,9 @@
         <section class="content-section">
             <div class="container">
                 <div class="content-overlay">
-                    <div class="iframe-container">
-                        <script type="text/javascript" src="https://form.jotform.com/jsform/240518057021042"></script>
+                    <div class="iframe-container" id="jotform-container">
+                        <!-- JotForm will be dynamically embedded here -->
+                        <div id="loading-message" style="text-align:center; color:var(--grey);">Loading your form...</div>
                     </div>
                 </div>
             </div>
@@ -75,5 +76,24 @@
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="scripts/particles-config.js"></script>
     <script src="scripts/navigation.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const container = document.getElementById('jotform-container');
+        const loading = document.getElementById('loading-message');
+        try {
+            // Fetch the embed code for the logged-in BAA from the backend
+            const response = await fetch('/api/baa/form', { credentials: 'include' });
+            if (!response.ok) throw new Error('Not authorized or no form assigned.');
+            const data = await response.json();
+            if (data && data.embedCode) {
+                container.innerHTML = data.embedCode;
+            } else {
+                container.innerHTML = '<div style="color:var(--red);text-align:center;">No form assigned to your account.</div>';
+            }
+        } catch (err) {
+            container.innerHTML = `<div style="color:var(--red);text-align:center;">${err.message}</div>`;
+        }
+    });
+    </script>
 </body>
 </html>

@@ -3,13 +3,12 @@ class AdminConsole {
     constructor() {
         this.participants = [];
         this.forms = [];
-        this.submissions = [];
-        this.currentEditingParticipant = null;
         this.init();
     }
 
-    init() {
-        this.loadData();
+    async init() {
+        await this.loadParticipants();
+        await this.loadForms();
         this.setupEventListeners();
         this.showTab('participants');
     }
@@ -63,6 +62,55 @@ class AdminConsole {
         const cancelBaaBtn = document.getElementById('cancelBaaBtn');
         const baaList = document.getElementById('baaList');
 
+        async function fetchBaas() {
+            baaList.innerHTML = '<div>Loading...</div>';
+            try {
+                const res = await fetch('/api/baas', { credentials: 'include' });
+                if (!res.ok) throw new Error('Failed to fetch BAAs');
+                const data = await res.json();
+                baaList.innerHTML = '';
+                if (data.baas.length === 0) {
+                    baaList.innerHTML = '<div>No Business Associates found.</div>';
+                } else {
+                    data.baas.forEach(baa => {
+                        const entry = document.createElement('div');
+                        entry.className = 'baa-entry';
+                        entry.innerHTML = `<strong>BAA #${baa.id}</strong><br><em>JotForm:</em> <code>${baa.jotform_embed ? baa.jotform_embed.replace(/</g, '&lt;') : ''}</code>`;
+                        // Add update form for each BAA
+                        const updateForm = document.createElement('form');
+                        updateForm.innerHTML = `
+                            <input type="password" placeholder="New Password" name="password" style="margin-right:8px;">
+                            <input type="text" placeholder="New JotForm Embed" name="jotform_embed" style="width:300px; margin-right:8px;">
+                            <button type="submit">Update</button>
+                        `;
+                        updateForm.onsubmit = async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(updateForm);
+                            const body = {};
+                            if (formData.get('password')) body.password = formData.get('password');
+                            if (formData.get('jotform_embed')) body.jotform_embed = formData.get('jotform_embed');
+                            if (!body.password && !body.jotform_embed) return;
+                            const resp = await fetch(`/api/baas/${baa.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify(body)
+                            });
+                            if (resp.ok) {
+                                fetchBaas();
+                            } else {
+                                alert('Failed to update BAA');
+                            }
+                        };
+                        entry.appendChild(updateForm);
+                        baaList.appendChild(entry);
+                    });
+                }
+            } catch (err) {
+                baaList.innerHTML = `<div style="color:red;">${err.message}</div>`;
+            }
+        }
+
         if (addBaaBtn) {
             addBaaBtn.addEventListener('click', () => {
                 baaForm.style.display = 'block';
@@ -77,114 +125,91 @@ class AdminConsole {
             });
         }
         if (baaFormElement) {
-            baaFormElement.addEventListener('submit', (e) => {
+            baaFormElement.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                // For now, just add to the list visually (no backend)
-                const name = document.getElementById('baaName').value;
-                const email = document.getElementById('baaEmail').value;
+                const password = document.getElementById('baaPassword').value;
                 const jotform = document.getElementById('baaJotform').value;
-                const entry = document.createElement('div');
-                entry.className = 'baa-entry';
-                entry.innerHTML = `<strong>${name}</strong> (${email})<br><em>JotForm:</em> <code>${jotform.replace(/</g, '&lt;')}</code>`;
-                baaList.appendChild(entry);
-                baaForm.style.display = 'none';
-                addBaaBtn.style.display = 'block';
-                baaFormElement.reset();
+                // Add BAA via backend
+                const resp = await fetch('/api/baas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ password, jotform_embed: jotform })
+                });
+                if (resp.ok) {
+                    baaForm.style.display = 'none';
+                    addBaaBtn.style.display = 'block';
+                    baaFormElement.reset();
+                    fetchBaas();
+                } else {
+                    alert('Failed to add BAA');
+                }
             });
+        }
+        // Load BAAs on tab open
+        const baaTabBtn = document.querySelector('.tab-btn[data-tab="baa"]');
+        if (baaTabBtn) {
+            baaTabBtn.addEventListener('click', fetchBaas);
+        }
+        // Optionally, load on page load if BAA tab is default
+        if (document.getElementById('baa').classList.contains('active')) {
+            fetchBaas();
         }
     }
 
-    loadData() {
-        // Load participants
-        const savedParticipants = localStorage.getItem('participants');
-        if (savedParticipants) {
-            this.participants = JSON.parse(savedParticipants);
+    async loadParticipants() {
+        const resp = await fetch('/api/participants', { credentials: 'include' });
+        if (resp.ok) {
+            const data = await resp.json();
+            this.participants = data.participants;
+        } else {
+            this.participants = [];
         }
+        this.renderParticipants();
+    }
 
-        // Always initialize with the latest forms (force update)
-        this.forms = [
-            {
-                id: 'participant-registration',
-                name: 'Participant Registration Form',
-                script: 'https://form.jotform.com/jsform/240416281252347',
-                button: 'Button photos/Button 1.jpg'
-            },
-            {
-                id: 'approved-participant',
-                name: 'Approved Participant Registration Form',
-                script: 'https://form.jotform.com/jsform/240460766257359',
-                button: 'Button photos/Button 2.jpg'
-            },
-            {
-                id: 'non-disclosure',
-                name: 'Non Disclosure Agreement',
-                script: 'https://form.jotform.com/jsform/240420220855344',
-                button: 'Button photos/Button 3.jpg'
-            },
-            {
-                id: 'confidentiality-exceptions',
-                name: 'Confidentiality Exceptions and Exemptions',
-                script: 'https://form.jotform.com/jsform/240530846219354',
-                button: 'Button photos/Button 4.jpg'
-            },
-            {
-                id: 'spousal-confidentiality',
-                name: 'Spousal Confidentiality Agreement',
-                script: 'https://form.jotform.com/jsform/240532319527353',
-                button: 'Button photos/Button 5.jpg'
-            },
-            {
-                id: 'medical-history-1-f',
-                name: 'Medical History 1 (F)',
-                script: 'https://form.jotform.com/jsform/240978903718368',
-                button: 'Button photos/Button 6.jpg'
-            },
-            {
-                id: 'medical-history-1-m',
-                name: 'Medical History 1 (M)',
-                script: 'https://form.jotform.com/jsform/240979364404362',
-                button: 'Button photos/Button 7.jpg'
-            },
-            {
-                id: 'medical-history-2',
-                name: 'Medical History 2',
-                script: 'https://form.jotform.com/jsform/240978994174374',
-                button: 'Button photos/Button 8.jpg'
-            },
-            {
-                id: 'medical-history-3',
-                name: 'Medical History 3',
-                script: 'https://form.jotform.com/jsform/240978683543369',
-                button: 'Button photos/Button 9.jpg'
-            },
-            {
-                id: 'medical-history-4',
-                name: 'Medical History 4',
-                script: 'https://form.jotform.com/jsform/240980887791373',
-                button: 'Button photos/Button 10.jpg'
-            },
-            {
-                id: 'medical-history-5-f',
-                name: 'Medical History 5 (F)',
-                script: 'https://form.jotform.com/jsform/240980062647358',
-                button: 'Button photos/Button 11.jpg'
-            },
-            {
-                id: 'medical-history-5-m',
-                name: 'Medical History 5 (M)',
-                script: 'https://form.jotform.com/jsform/240980848706366',
-                button: 'Button photos/Button 12.jpg'
+    async loadForms() {
+        const resp = await fetch('/api/forms', { credentials: 'include' });
+        if (resp.ok) {
+            const data = await resp.json();
+            this.forms = data.forms;
+        } else {
+            this.forms = [];
+        }
+        this.renderForms();
+    }
+
+    async saveParticipant() {
+        const name = document.getElementById('participantName').value;
+        const password = document.getElementById('participantPassword').value;
+        const assignedForms = Array.from(document.querySelectorAll('.forms-checklist input[type="checkbox"]:checked')).map(cb => parseInt(cb.value));
+        if (!name || !password) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        // Add participant
+        const resp = await fetch('/api/participants', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name, password })
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            // Assign forms
+            if (assignedForms.length > 0) {
+                await fetch('/api/assign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ participant_id: data.id, form_ids: assignedForms })
+                });
             }
-        ];
-        localStorage.setItem('portalForms', JSON.stringify(this.forms));
-
-        // Load submissions
-        const savedSubmissions = localStorage.getItem('formSubmissions');
-        if (savedSubmissions) {
-            this.submissions = JSON.parse(savedSubmissions);
+            this.hideParticipantForm();
+            await this.loadParticipants();
+        } else {
+            alert('Failed to add participant');
         }
-
-        this.renderAll();
     }
 
     showTab(tabName) {
@@ -245,100 +270,6 @@ class AdminConsole {
         checklist.innerHTML = checklistHTML;
     }
 
-    saveParticipant() {
-        const name = document.getElementById('participantName').value;
-        const password = document.getElementById('participantPassword').value;
-        const assignedForms = Array.from(document.querySelectorAll('.forms-checklist input[type="checkbox"]:checked'))
-            .map(checkbox => checkbox.value);
-
-        if (!name || !password) {
-            alert('Please fill in all required fields');
-            return;
-        }
-
-        const participant = {
-            id: this.currentEditingParticipant ? this.currentEditingParticipant.id : `participant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name,
-            password,
-            assignedForms,
-            createdAt: this.currentEditingParticipant ? this.currentEditingParticipant.createdAt : new Date().toISOString()
-        };
-
-        if (this.currentEditingParticipant) {
-            // Update existing participant
-            const index = this.participants.findIndex(p => p.id === this.currentEditingParticipant.id);
-            this.participants[index] = participant;
-        } else {
-            // Add new participant
-            this.participants.push(participant);
-        }
-
-        localStorage.setItem('participants', JSON.stringify(this.participants));
-        this.hideParticipantForm();
-        this.renderParticipants();
-    }
-
-    editParticipant(participantId) {
-        const participant = this.participants.find(p => p.id === participantId);
-        if (participant) {
-            this.showParticipantForm(participant);
-        }
-    }
-
-    deleteParticipant(participantId) {
-        if (confirm('Are you sure you want to delete this participant?')) {
-            // Remove the participant
-            this.participants = this.participants.filter(p => p.id !== participantId);
-            localStorage.setItem('participants', JSON.stringify(this.participants));
-            
-            // Clean up submissions for this participant
-            const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
-            const cleanedSubmissions = submissions.filter(sub => sub.participantId !== participantId);
-            localStorage.setItem('formSubmissions', JSON.stringify(cleanedSubmissions));
-            
-            this.renderParticipants();
-        }
-    }
-
-    showFormForm() {
-        document.getElementById('formForm').style.display = 'block';
-    }
-
-    hideFormForm() {
-        document.getElementById('formForm').style.display = 'none';
-    }
-
-    saveForm() {
-        const name = document.getElementById('formName').value;
-        const script = document.getElementById('formScript').value;
-        const button = document.getElementById('formButton').value;
-
-        if (!name || !script || !button) {
-            alert('Please fill in all required fields');
-            return;
-        }
-
-        const form = {
-            id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            name,
-            script,
-            button
-        };
-
-        this.forms.push(form);
-        localStorage.setItem('portalForms', JSON.stringify(this.forms));
-        this.hideFormForm();
-        this.renderForms();
-    }
-
-    deleteForm(formId) {
-        if (confirm('Are you sure you want to delete this form?')) {
-            this.forms = this.forms.filter(f => f.id !== formId);
-            localStorage.setItem('portalForms', JSON.stringify(this.forms));
-            this.renderForms();
-        }
-    }
-
     renderParticipants() {
         const list = document.getElementById('participantsList');
         if (this.participants.length === 0) {
@@ -350,19 +281,32 @@ class AdminConsole {
             <div class="participant-item">
                 <div class="participant-info-item">
                     <div class="participant-name">${participant.name}</div>
-                    <div class="participant-forms">
-                        Password: ${participant.password}<br>
-                        Assigned Forms: ${participant.assignedForms.length} forms
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="edit-btn" onclick="admin.editParticipant('${participant.id}')">Edit</button>
-                    <button class="delete-btn" onclick="admin.deleteParticipant('${participant.id}')">Delete</button>
                 </div>
             </div>
         `).join('');
 
         list.innerHTML = participantsHTML;
+    }
+
+    async saveForm() {
+        const name = document.getElementById('formName').value;
+        const jotform_embed = document.getElementById('formScript').value;
+        if (!name || !jotform_embed) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        const resp = await fetch('/api/forms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name, jotform_embed })
+        });
+        if (resp.ok) {
+            this.hideFormForm();
+            await this.loadForms();
+        } else {
+            alert('Failed to add form');
+        }
     }
 
     renderForms() {
@@ -376,11 +320,6 @@ class AdminConsole {
             <div class="form-item">
                 <div class="form-info-item">
                     <div class="form-name">${form.name}</div>
-                    <div class="form-script">Script: ${form.script}</div>
-                    <div class="form-script">Button: ${form.button}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="delete-btn" onclick="admin.deleteForm('${form.id}')">Delete</button>
                 </div>
             </div>
         `).join('');
