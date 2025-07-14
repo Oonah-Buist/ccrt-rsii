@@ -309,7 +309,12 @@ app.get('/api/participants/:id', requireAdmin, (req, res) => {
     db.all('SELECT form_id FROM assignments WHERE participant_id = ?', [id], (err2, rows) => {
       if (err2) return res.status(500).json({ error: 'Failed to fetch assignments' });
       const formIds = rows.map(row => row.form_id);
-      res.json({ participant, formIds });
+      res.json({
+        id: participant.id,
+        name: participant.name,
+        login_id: participant.login_id,
+        assignedForms: formIds
+      });
     });
   });
 });
