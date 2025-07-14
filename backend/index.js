@@ -285,7 +285,7 @@ app.post('/api/participant/complete', requireParticipant, (req, res) => {
 
 // --- Admin: list all forms ---
 app.get('/api/forms', requireAdmin, (req, res) => {
-  db.all('SELECT id, name, jotform_embed FROM forms', [], (err, rows) => {
+  db.all('SELECT id, name, jotform_embed, button_image FROM forms', [], (err, rows) => {
     if (err) return res.status(500).json({ error: 'Failed to fetch forms' });
     res.json({ forms: rows });
   });
@@ -293,11 +293,22 @@ app.get('/api/forms', requireAdmin, (req, res) => {
 
 // --- Admin: add a new form ---
 app.post('/api/forms', requireAdmin, (req, res) => {
-  const { name, jotform_embed } = req.body;
-  if (!name || !jotform_embed) return res.status(400).json({ error: 'Name and JotForm embed code required' });
-  db.run('INSERT INTO forms (name, jotform_embed) VALUES (?, ?)', [name, jotform_embed], function(err) {
+  const { name, jotform_embed, button_image } = req.body;
+  if (!name || !jotform_embed || !button_image) return res.status(400).json({ error: 'Name, JotForm embed code, and button image required' });
+  db.run('INSERT INTO forms (name, jotform_embed, button_image) VALUES (?, ?, ?)', [name, jotform_embed, button_image], function(err) {
     if (err) return res.status(500).json({ error: 'Failed to add form' });
     res.json({ id: this.lastID });
+  });
+});
+
+// --- Admin: update a form ---
+app.put('/api/forms/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const { name, jotform_embed, button_image } = req.body;
+  if (!name || !jotform_embed || !button_image) return res.status(400).json({ error: 'Name, JotForm embed code, and button image required' });
+  db.run('UPDATE forms SET name = ?, jotform_embed = ?, button_image = ? WHERE id = ?', [name, jotform_embed, button_image, id], function(err) {
+    if (err) return res.status(500).json({ error: 'Failed to update form' });
+    res.json({ success: true });
   });
 });
 

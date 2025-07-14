@@ -234,8 +234,9 @@ class AdminConsole {
 
     async saveForm() {
         const formName = document.getElementById('formName').value;
-        const formDescription = document.getElementById('formDescription').value;
-        if (!formName || !formDescription) {
+        const jotformEmbed = document.getElementById('formScript').value;
+        const buttonImage = document.getElementById('formButton').value;
+        if (!formName || !jotformEmbed || !buttonImage) {
             alert('Please fill in all required fields');
             return;
         }
@@ -245,7 +246,7 @@ class AdminConsole {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ name: formName, description: formDescription })
+                body: JSON.stringify({ name: formName, jotform_embed: jotformEmbed, button_image: buttonImage })
             });
             if (resp.ok) {
                 this.hideFormForm();
@@ -259,7 +260,7 @@ class AdminConsole {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ name: formName, description: formDescription })
+                body: JSON.stringify({ name: formName, jotform_embed: jotformEmbed, button_image: buttonImage })
             });
             if (resp.ok) {
                 this.hideFormForm();
@@ -445,7 +446,8 @@ class AdminConsole {
         const form = this.forms.find(f => f.id === parseInt(formId));
         if (form) {
             document.getElementById('formName').value = form.name;
-            document.getElementById('formDescription').value = form.description;
+            document.getElementById('formScript').value = form.jotform_embed;
+            document.getElementById('formButton').value = form.button_image || '';
             this.currentEditingForm = form;
             document.getElementById('formForm').style.display = 'block';
             document.getElementById('addFormBtn').style.display = 'none';
