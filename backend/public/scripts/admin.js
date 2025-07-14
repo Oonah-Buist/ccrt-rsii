@@ -192,7 +192,7 @@ class AdminConsole {
 
         if (this.currentEditingParticipant && this.currentEditingParticipant.id) {
             // Edit existing participant
-            const body = { name, loginId, assignedForms };
+            const body = { name, login_id: loginId, assignedForms };
             const resp = await fetch(`/api/participants/${this.currentEditingParticipant.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

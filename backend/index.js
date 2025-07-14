@@ -344,6 +344,41 @@ app.delete('/api/participants/:id', requireAdmin, (req, res) => {
   });
 });
 
+// --- Admin: update participant info and assigned forms ---
+app.put('/api/participants/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const { name, login_id, assignedForms } = req.body;
+  // Update name and/or login_id if provided
+  const updateParticipant = (cb) => {
+    if (login_id && name) {
+      db.run('UPDATE participants SET name = ?, login_id = ? WHERE id = ?', [name, login_id, id], cb);
+    } else if (name) {
+      db.run('UPDATE participants SET name = ? WHERE id = ?', [name, id], cb);
+    } else if (login_id) {
+      db.run('UPDATE participants SET login_id = ? WHERE id = ?', [login_id, id], cb);
+    } else {
+      cb();
+    }
+  };
+  updateParticipant((err) => {
+    if (err) return res.status(500).json({ error: 'Failed to update participant' });
+    // Update assigned forms
+    if (Array.isArray(assignedForms)) {
+      db.run('DELETE FROM assignments WHERE participant_id = ?', [id], (err2) => {
+        if (err2) return res.status(500).json({ error: 'Failed to clear assignments' });
+        const stmt = db.prepare('INSERT INTO assignments (participant_id, form_id) VALUES (?, ?)');
+        assignedForms.forEach(fid => stmt.run(id, fid));
+        stmt.finalize(err3 => {
+          if (err3) return res.status(500).json({ error: 'Failed to assign forms' });
+          res.json({ success: true });
+        });
+      });
+    } else {
+      res.json({ success: true });
+    }
+  });
+});
+
 // Serve static files (should be after API routes)
 app.use(express.static(path.join(__dirname, 'public')));
 
