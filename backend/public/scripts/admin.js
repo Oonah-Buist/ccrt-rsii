@@ -419,6 +419,7 @@ class AdminConsole {
             this.showParticipantForm({
                 id: data.id,
                 name: data.name,
+                login_id: data.login_id, // Pass login_id to form
                 assignedForms: data.assignedForms
             });
         } else {
