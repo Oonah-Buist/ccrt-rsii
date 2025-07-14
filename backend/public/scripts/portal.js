@@ -49,11 +49,13 @@ class ParticipantPortal {
             const clickHandler = isSubmitted ? '' : `portal.openForm(${form.id})`;
             const pointerEvents = isSubmitted ? 'pointer-events: none;' : '';
             let statusText = isSubmitted ? 'COMPLETED' : 'CLICK TO COMPLETE';
+            // Use the button_image field from the backend, fallback to default if missing
+            const imageSrc = form.button_image ? form.button_image : 'Button photos/Button 1.jpg';
             return `
                 <div class="${cardClass}">
                     <div class="form-card-content">
                         <div class="form-image-container" ${clickHandler ? `onclick=\"${clickHandler}\"` : ''} style="${pointerEvents}">
-                            <img src="Button photos/Button 1.jpg" alt="Form" class="form-image">
+                            <img src="${imageSrc}" alt="Form" class="form-image">
                             <div class="form-overlay-text">${statusText}</div>
                         </div>
                         <h3 class="form-title">${form.name}</h3>

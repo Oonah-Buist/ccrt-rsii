@@ -261,7 +261,7 @@ app.post('/api/participant/logout', (req, res) => {
 // --- Participant: fetch assigned forms and completion status ---
 app.get('/api/participant/forms', requireParticipant, (req, res) => {
   const pid = req.session.participant.id;
-  db.all(`SELECT f.id, f.name, f.jotform_embed,
+  db.all(`SELECT f.id, f.name, f.jotform_embed, f.button_image,
     CASE WHEN c.form_id IS NOT NULL THEN 1 ELSE 0 END as completed
     FROM forms f
     JOIN assignments a ON a.form_id = f.id AND a.participant_id = ?
