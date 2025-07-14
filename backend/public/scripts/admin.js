@@ -326,9 +326,15 @@ class AdminConsole {
             const div = document.createElement('div');
             div.className = 'participant-entry';
             div.innerHTML = `
-                <strong>${participant.name}</strong> (Login ID: <span class="participant-login-id">${participant.login_id}</span>)
-                <button class="edit-btn" data-id="${participant.id}">Edit</button>
-                <button class="delete-btn" data-id="${participant.id}">Delete</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div>
+                    <strong>${participant.name}</strong> (Login ID: <span class="participant-login-id">${participant.login_id}</span>)
+                  </div>
+                  <div class="item-actions">
+                    <button class="edit-btn" data-id="${participant.id}">Edit</button>
+                    <button class="delete-btn" data-id="${participant.id}">Delete</button>
+                  </div>
+                </div>
             `;
             container.appendChild(div);
         });
@@ -343,9 +349,15 @@ class AdminConsole {
             const div = document.createElement('div');
             div.className = 'form-entry';
             div.innerHTML = `
-                <strong>${form.name}</strong>
-                <button class="edit-btn" data-id="${form.id}">Edit</button>
-                <button class="delete-btn" data-id="${form.id}">Delete</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div>
+                    <strong>${form.name}</strong>
+                  </div>
+                  <div class="item-actions">
+                    <button class="edit-btn" data-id="${form.id}">Edit</button>
+                    <button class="delete-btn" data-id="${form.id}">Delete</button>
+                  </div>
+                </div>
             `;
             container.appendChild(div);
         });
