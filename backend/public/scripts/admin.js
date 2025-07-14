@@ -183,199 +183,249 @@ class AdminConsole {
         const name = document.getElementById('participantName').value;
         const password = document.getElementById('participantPassword').value;
         const assignedForms = Array.from(document.querySelectorAll('.forms-checklist input[type="checkbox"]:checked')).map(cb => parseInt(cb.value));
-        if (!name || !password) {
+        if (!name) {
             alert('Please fill in all required fields');
             return;
         }
-        // Add participant
-        const resp = await fetch('/api/participants', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ name, password })
-        });
-        if (resp.ok) {
-            const data = await resp.json();
-            // Assign forms
-            if (assignedForms.length > 0) {
-                await fetch('/api/assign', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ participant_id: data.id, form_ids: assignedForms })
-                });
+        if (this.currentEditingParticipant && this.currentEditingParticipant.id) {
+            // Edit existing participant
+            const body = { name, assignedForms };
+            if (password) body.password = password;
+            const resp = await fetch(`/api/participants/${this.currentEditingParticipant.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(body)
+            });
+            if (resp.ok) {
+                this.hideParticipantForm();
+                await this.loadParticipants();
+            } else {
+                alert('Failed to update participant');
             }
-            this.hideParticipantForm();
-            await this.loadParticipants();
         } else {
-            alert('Failed to add participant');
+            // Add participant
+            if (!password) {
+                alert('Password required for new participant');
+                return;
+            }
+            const resp = await fetch('/api/participants', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name, password })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                // Assign forms
+                if (assignedForms.length > 0) {
+                    await fetch('/api/assign', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ participant_id: data.id, form_ids: assignedForms })
+                    });
+                }
+                this.hideParticipantForm();
+                await this.loadParticipants();
+            } else {
+                alert('Failed to add participant');
+            }
+        }
+    }
+
+    async saveForm() {
+        const formName = document.getElementById('formName').value;
+        const formDescription = document.getElementById('formDescription').value;
+        if (!formName || !formDescription) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        if (this.currentEditingForm && this.currentEditingForm.id) {
+            // Edit existing form
+            const resp = await fetch(`/api/forms/${this.currentEditingForm.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name: formName, description: formDescription })
+            });
+            if (resp.ok) {
+                this.hideFormForm();
+                await this.loadForms();
+            } else {
+                alert('Failed to update form');
+            }
+        } else {
+            // Add new form
+            const resp = await fetch('/api/forms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name: formName, description: formDescription })
+            });
+            if (resp.ok) {
+                this.hideFormForm();
+                await this.loadForms();
+            } else {
+                alert('Failed to add form');
+            }
         }
     }
 
     showTab(tabName) {
-        // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
+            tab.style.display = 'none';
         });
+        document.getElementById(tabName).style.display = 'block';
+
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
     }
 
-    showParticipantForm(participant = null) {
-        this.currentEditingParticipant = participant;
-        const form = document.getElementById('participantForm');
-        
-        // First render the forms checklist
-        this.renderFormsChecklist();
-        
-        if (participant) {
-            document.getElementById('participantName').value = participant.name;
-            document.getElementById('participantPassword').value = participant.password;
-            
-            // Set assigned forms checkboxes after rendering the checklist
-            setTimeout(() => {
-                const checkboxes = document.querySelectorAll('.forms-checklist input[type="checkbox"]');
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = participant.assignedForms && participant.assignedForms.includes(checkbox.value);
-                });
-            }, 10);
-        } else {
-            document.getElementById('participantFormElement').reset();
-        }
-
-        form.style.display = 'block';
+    showParticipantForm() {
+        document.getElementById('participantForm').style.display = 'block';
+        document.getElementById('participantFormElement').reset();
+        this.currentEditingParticipant = null;
     }
 
     hideParticipantForm() {
         document.getElementById('participantForm').style.display = 'none';
-        this.currentEditingParticipant = null;
-        
-        // Show the add participant button again
         document.getElementById('addParticipantBtn').style.display = 'block';
     }
 
-    renderFormsChecklist() {
-        const checklist = document.getElementById('formsChecklist');
-        const checklistHTML = this.forms.map(form => `
-            <div class="form-checkbox">
-                <input type="checkbox" id="form-${form.id}" value="${form.id}">
-                <label for="form-${form.id}">${form.name}</label>
-            </div>
-        `).join('');
-        checklist.innerHTML = checklistHTML;
+    showFormForm() {
+        document.getElementById('formForm').style.display = 'block';
+        document.getElementById('formFormElement').reset();
+        this.currentEditingForm = null;
+    }
+
+    hideFormForm() {
+        document.getElementById('formForm').style.display = 'none';
+        document.getElementById('addFormBtn').style.display = 'block';
     }
 
     renderParticipants() {
-        const list = document.getElementById('participantsList');
-        if (this.participants.length === 0) {
-            list.innerHTML = '<p>No participants yet. Click "Add New Participant" to get started.</p>';
-            return;
-        }
-
-        const participantsHTML = this.participants.map(participant => `
-            <div class="participant-item">
-                <div class="participant-info-item">
-                    <div class="participant-name">${participant.name}</div>
-                </div>
-            </div>
-        `).join('');
-
-        list.innerHTML = participantsHTML;
-    }
-
-    async saveForm() {
-        const name = document.getElementById('formName').value;
-        const jotform_embed = document.getElementById('formScript').value;
-        if (!name || !jotform_embed) {
-            alert('Please fill in all required fields');
-            return;
-        }
-        const resp = await fetch('/api/forms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ name, jotform_embed })
+        const container = document.getElementById('participantsList');
+        container.innerHTML = '';
+        this.participants.forEach(participant => {
+            const div = document.createElement('div');
+            div.className = 'participant-entry';
+            div.innerHTML = `
+                <strong>${participant.name}</strong>
+                <button class="edit-btn" data-id="${participant.id}">Edit</button>
+                <button class="delete-btn" data-id="${participant.id}">Delete</button>
+            `;
+            container.appendChild(div);
         });
-        if (resp.ok) {
-            this.hideFormForm();
-            await this.loadForms();
-        } else {
-            alert('Failed to add form');
-        }
+        // Re-apply event listeners after re-rendering
+        this.reapplyParticipantEventListeners();
     }
 
     renderForms() {
-        const list = document.getElementById('formsList');
-        if (this.forms.length === 0) {
-            list.innerHTML = '<p>No forms available.</p>';
-            return;
-        }
-
-        const formsHTML = this.forms.map(form => `
-            <div class="form-item">
-                <div class="form-info-item">
-                    <div class="form-name">${form.name}</div>
-                </div>
-            </div>
-        `).join('');
-
-        list.innerHTML = formsHTML;
+        const container = document.getElementById('formsList');
+        container.innerHTML = '';
+        this.forms.forEach(form => {
+            const div = document.createElement('div');
+            div.className = 'form-entry';
+            div.innerHTML = `
+                <strong>${form.name}</strong>
+                <button class="edit-btn" data-id="${form.id}">Edit</button>
+                <button class="delete-btn" data-id="${form.id}">Delete</button>
+            `;
+            container.appendChild(div);
+        });
+        // Re-apply event listeners after re-rendering
+        this.reapplyFormEventListeners();
     }
 
-    renderSubmissions() {
-        const list = document.getElementById('submissionsList');
-        if (this.submissions.length === 0) {
-            list.innerHTML = '<p>No form submissions yet.</p>';
-            return;
-        }
+    reapplyParticipantEventListeners() {
+        document.querySelectorAll('.participant-entry .edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const participantId = e.target.dataset.id;
+                this.editParticipant(participantId);
+            });
+        });
+        document.querySelectorAll('.participant-entry .delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const participantId = e.target.dataset.id;
+                this.deleteParticipant(participantId);
+            });
+        });
+    }
 
-        // Group submissions by participant
-        const groupedSubmissions = this.submissions.reduce((acc, submission) => {
-            const participant = this.participants.find(p => p.id === submission.participantId);
-            const participantName = participant ? participant.name : 'Unknown Participant';
-            
-            if (!acc[participantName]) {
-                acc[participantName] = [];
+    reapplyFormEventListeners() {
+        document.querySelectorAll('.form-entry .edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const formId = e.target.dataset.id;
+                this.editForm(formId);
+            });
+        });
+        document.querySelectorAll('.form-entry .delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const formId = e.target.dataset.id;
+                this.deleteForm(formId);
+            });
+        });
+    }
+
+    async editParticipant(participantId) {
+        const participant = this.participants.find(p => p.id === parseInt(participantId));
+        if (participant) {
+            document.getElementById('participantName').value = participant.name;
+            document.getElementById('participantPassword').value = '';
+            // Set assigned forms
+            const assignedForms = new Set(participant.assigned_forms.map(f => f.id));
+            document.querySelectorAll('.forms-checklist input[type="checkbox"]').forEach(cb => {
+                cb.checked = assignedForms.has(parseInt(cb.value));
+            });
+            this.currentEditingParticipant = participant;
+            document.getElementById('participantForm').style.display = 'block';
+            document.getElementById('addParticipantBtn').style.display = 'none';
+        }
+    }
+
+    async deleteParticipant(participantId) {
+        if (confirm('Are you sure you want to delete this participant?')) {
+            const resp = await fetch(`/api/participants/${participantId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (resp.ok) {
+                await this.loadParticipants();
+            } else {
+                alert('Failed to delete participant');
             }
-            acc[participantName].push(submission);
-            return acc;
-        }, {});
-
-        const submissionsHTML = Object.entries(groupedSubmissions).map(([participantName, submissions]) => `
-            <div class="submission-item">
-                <div class="submission-header">
-                    <div class="submission-participant">${participantName}</div>
-                    <div class="submission-date">Last submission: ${new Date(submissions[submissions.length - 1].submittedAt).toLocaleDateString()}</div>
-                </div>
-                <div class="submission-forms">
-                    ${submissions.map(sub => {
-                        const form = this.forms.find(f => f.id === sub.formId);
-                        return `<div class="submission-form">${form ? form.name : sub.formId}</div>`;
-                    }).join('')}
-                </div>
-            </div>
-        `).join('');
-
-        list.innerHTML = submissionsHTML;
+        }
     }
 
-    renderAll() {
-        this.renderParticipants();
-        this.renderForms();
-        this.renderSubmissions();
+    async editForm(formId) {
+        const form = this.forms.find(f => f.id === parseInt(formId));
+        if (form) {
+            document.getElementById('formName').value = form.name;
+            document.getElementById('formDescription').value = form.description;
+            this.currentEditingForm = form;
+            document.getElementById('formForm').style.display = 'block';
+            document.getElementById('addFormBtn').style.display = 'none';
+        }
+    }
+
+    async deleteForm(formId) {
+        if (confirm('Are you sure you want to delete this form?')) {
+            const resp = await fetch(`/api/forms/${formId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (resp.ok) {
+                await this.loadForms();
+            } else {
+                alert('Failed to delete form');
+            }
+        }
     }
 }
 
-// Initialize admin console when page loads
-let admin;
 document.addEventListener('DOMContentLoaded', () => {
-    admin = new AdminConsole();
+    new AdminConsole();
 });
-
-// Make admin globally available
-window.admin = admin;

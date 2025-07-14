@@ -39,16 +39,10 @@ class AdminConsole {
             this.saveParticipant();
         });
 
-        // Add form
-        document.getElementById('addFormBtn').addEventListener('click', () => {
-            this.showFormForm();
-        });
-
-        // Cancel form form
-        document.getElementById('cancelFormBtn').addEventListener('click', () => {
-            this.hideFormForm();
-        });
-
+        // Add form (bind to class instance)
+        document.getElementById('addFormBtn').addEventListener('click', this.showFormForm.bind(this));
+        // Cancel form form (bind to class instance)
+        document.getElementById('cancelFormBtn').addEventListener('click', this.hideFormForm.bind(this));
         // Submit form form
         document.getElementById('formFormElement').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -259,6 +253,13 @@ class AdminConsole {
         document.getElementById('addParticipantBtn').style.display = 'block';
     }
 
+    showFormForm() {
+        document.getElementById('formForm').style.display = 'block';
+    }
+    hideFormForm() {
+        document.getElementById('formForm').style.display = 'none';
+    }
+
     renderFormsChecklist() {
         const checklist = document.getElementById('formsChecklist');
         const checklistHTML = this.forms.map(form => `
@@ -375,7 +376,5 @@ class AdminConsole {
 let admin;
 document.addEventListener('DOMContentLoaded', () => {
     admin = new AdminConsole();
+    window.admin = admin;
 });
-
-// Make admin globally available
-window.admin = admin;

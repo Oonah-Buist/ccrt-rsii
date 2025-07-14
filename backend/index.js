@@ -281,6 +281,73 @@ app.post('/api/participant/complete', requireParticipant, (req, res) => {
   });
 });
 
+// --- Admin: list all forms ---
+app.get('/api/forms', requireAdmin, (req, res) => {
+  db.all('SELECT id, name, jotform_embed FROM forms', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch forms' });
+    res.json({ forms: rows });
+  });
+});
+
+// --- Admin: add a new form ---
+app.post('/api/forms', requireAdmin, (req, res) => {
+  const { name, jotform_embed } = req.body;
+  if (!name || !jotform_embed) return res.status(400).json({ error: 'Name and JotForm embed code required' });
+  db.run('INSERT INTO forms (name, jotform_embed) VALUES (?, ?)', [name, jotform_embed], function(err) {
+    if (err) return res.status(500).json({ error: 'Failed to add form' });
+    res.json({ id: this.lastID });
+  });
+});
+
+// --- Admin: get participant details and assigned forms ---
+app.get('/api/participants/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  db.get('SELECT id, name FROM participants WHERE id = ?', [id], (err, participant) => {
+    if (err || !participant) return res.status(404).json({ error: 'Participant not found' });
+    db.all('SELECT form_id FROM assignments WHERE participant_id = ?', [id], (err2, rows) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch assignments' });
+      participant.assignedForms = rows.map(r => r.form_id);
+      res.json(participant);
+    });
+  });
+});
+
+// --- Admin: update participant info and assigned forms ---
+app.put('/api/participants/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const { name, password, assignedForms } = req.body;
+  // Update name and/or password if provided
+  const updateParticipant = (cb) => {
+    if (password) {
+      bcrypt.hash(password, 10, (err, hash) => {
+        if (err) return cb(err);
+        db.run('UPDATE participants SET name = ?, password_hash = ? WHERE id = ?', [name, hash, id], cb);
+      });
+    } else if (name) {
+      db.run('UPDATE participants SET name = ? WHERE id = ?', [name, id], cb);
+    } else {
+      cb();
+    }
+  };
+  updateParticipant((err) => {
+    if (err) return res.status(500).json({ error: 'Failed to update participant' });
+    // Update assigned forms
+    if (Array.isArray(assignedForms)) {
+      db.run('DELETE FROM assignments WHERE participant_id = ?', [id], (err2) => {
+        if (err2) return res.status(500).json({ error: 'Failed to clear assignments' });
+        const stmt = db.prepare('INSERT INTO assignments (participant_id, form_id) VALUES (?, ?)');
+        assignedForms.forEach(fid => stmt.run(id, fid));
+        stmt.finalize(err3 => {
+          if (err3) return res.status(500).json({ error: 'Failed to assign forms' });
+          res.json({ success: true });
+        });
+      });
+    } else {
+      res.json({ success: true });
+    }
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
