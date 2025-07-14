@@ -21,7 +21,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false } // Set to true if using HTTPS
 }));
-app.use(express.static(path.join(__dirname, 'public')));
+
 // DB schema setup (run once)
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS admins (
@@ -37,7 +37,7 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS participants (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    password_hash TEXT
+    login_id TEXT
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS forms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -204,20 +204,28 @@ app.put('/api/baas/:id', requireAdmin, (req, res) => {
 
 // --- Admin: add participant ---
 app.post('/api/participants', requireAdmin, (req, res) => {
-  const { name, password } = req.body;
-  if (!name || !password) return res.status(400).json({ error: 'Name and password required' });
-  bcrypt.hash(password, 10, (err, hash) => {
-    if (err) return res.status(500).json({ error: 'Failed to hash password' });
-    db.run('INSERT INTO participants (name, password_hash) VALUES (?, ?)', [name, hash], function(err) {
-      if (err) return res.status(500).json({ error: 'Failed to add participant' });
-      res.json({ id: this.lastID });
-    });
+  // Debug: log session and body
+  console.log('Session:', req.session);
+  console.log('Received participant:', req.body);
+  // Accept both loginId and login_id for robustness
+  const { name, loginId, login_id } = req.body;
+  const finalLoginId = loginId || login_id;
+  if (!name || !finalLoginId) {
+    console.log('Missing name or loginId:', { name, finalLoginId });
+    return res.status(400).json({ error: 'Name and Login ID required' });
+  }
+  db.run('INSERT INTO participants (name, login_id) VALUES (?, ?)', [name, finalLoginId], function(err) {
+    if (err) {
+      console.log('DB error:', err);
+      return res.status(500).json({ error: 'Failed to add participant', details: err.message });
+    }
+    res.json({ id: this.lastID });
   });
 });
 
 // --- Admin: list participants ---
 app.get('/api/participants', requireAdmin, (req, res) => {
-  db.all('SELECT id, name FROM participants', [], (err, rows) => {
+  db.all('SELECT id, name, login_id FROM participants', [], (err, rows) => {
     if (err) return res.status(500).json({ error: 'Failed to fetch participants' });
     res.json({ participants: rows });
   });
@@ -237,17 +245,11 @@ app.post('/api/assign', requireAdmin, (req, res) => {
 
 // --- Participant login ---
 app.post('/api/participant/login', (req, res) => {
-  const { name, password } = req.body;
-  db.get('SELECT * FROM participants WHERE name = ?', [name], (err, user) => {
+  const { login_id } = req.body;
+  db.get('SELECT * FROM participants WHERE login_id = ?', [login_id], (err, user) => {
     if (err || !user) return res.status(401).json({ error: 'Invalid credentials' });
-    bcrypt.compare(password, user.password_hash, (err, result) => {
-      if (result) {
-        req.session.participant = { id: user.id, name: user.name };
-        res.json({ success: true });
-      } else {
-        res.status(401).json({ error: 'Invalid credentials' });
-      }
-    });
+    req.session.participant = { id: user.id, name: user.name, login_id: user.login_id };
+    res.json({ success: true });
   });
 });
 
@@ -302,52 +304,51 @@ app.post('/api/forms', requireAdmin, (req, res) => {
 // --- Admin: get participant details and assigned forms ---
 app.get('/api/participants/:id', requireAdmin, (req, res) => {
   const id = req.params.id;
-  db.get('SELECT id, name FROM participants WHERE id = ?', [id], (err, participant) => {
+  db.get('SELECT id, name, login_id FROM participants WHERE id = ?', [id], (err, participant) => {
     if (err || !participant) return res.status(404).json({ error: 'Participant not found' });
     db.all('SELECT form_id FROM assignments WHERE participant_id = ?', [id], (err2, rows) => {
       if (err2) return res.status(500).json({ error: 'Failed to fetch assignments' });
-      participant.assignedForms = rows.map(r => r.form_id);
-      res.json(participant);
+      const formIds = rows.map(row => row.form_id);
+      res.json({ participant, formIds });
     });
   });
 });
 
-// --- Admin: update participant info and assigned forms ---
-app.put('/api/participants/:id', requireAdmin, (req, res) => {
-  const id = req.params.id;
-  const { name, password, assignedForms } = req.body;
-  // Update name and/or password if provided
-  const updateParticipant = (cb) => {
-    if (password) {
-      bcrypt.hash(password, 10, (err, hash) => {
-        if (err) return cb(err);
-        db.run('UPDATE participants SET name = ?, password_hash = ? WHERE id = ?', [name, hash, id], cb);
-      });
-    } else if (name) {
-      db.run('UPDATE participants SET name = ? WHERE id = ?', [name, id], cb);
-    } else {
-      cb();
-    }
-  };
-  updateParticipant((err) => {
-    if (err) return res.status(500).json({ error: 'Failed to update participant' });
-    // Update assigned forms
-    if (Array.isArray(assignedForms)) {
-      db.run('DELETE FROM assignments WHERE participant_id = ?', [id], (err2) => {
-        if (err2) return res.status(500).json({ error: 'Failed to clear assignments' });
-        const stmt = db.prepare('INSERT INTO assignments (participant_id, form_id) VALUES (?, ?)');
-        assignedForms.forEach(fid => stmt.run(id, fid));
-        stmt.finalize(err3 => {
-          if (err3) return res.status(500).json({ error: 'Failed to assign forms' });
-          res.json({ success: true });
-        });
-      });
-    } else {
-      res.json({ success: true });
-    }
+// --- Participant: get own details and assigned forms ---
+app.get('/api/participant/me', requireParticipant, (req, res) => {
+  const pid = req.session.participant.id;
+  db.get('SELECT id, name, login_id FROM participants WHERE id = ?', [pid], (err, participant) => {
+    if (err || !participant) return res.status(404).json({ error: 'Participant not found' });
+    db.all('SELECT form_id FROM assignments WHERE participant_id = ?', [pid], (err2, rows) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch assignments' });
+      const formIds = rows.map(row => row.form_id);
+      res.json({ participant, formIds });
+    });
   });
 });
 
+// --- Admin: delete participant ---
+app.delete('/api/participants/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  db.run('DELETE FROM assignments WHERE participant_id = ?', [id], (err2) => {
+    if (err2) return res.status(500).json({ error: 'Failed to delete assignments' });
+    db.run('DELETE FROM participants WHERE id = ?', [id], function(err3) {
+      if (err3) return res.status(500).json({ error: 'Failed to delete participant' });
+      res.json({ success: true });
+    });
+  });
+});
+
+// Serve static files (should be after API routes)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// --- Error handling middleware ---
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong' });
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

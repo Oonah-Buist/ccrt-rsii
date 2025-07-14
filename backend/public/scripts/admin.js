@@ -181,16 +181,18 @@ class AdminConsole {
 
     async saveParticipant() {
         const name = document.getElementById('participantName').value;
-        const password = document.getElementById('participantPassword').value;
+        const loginId = document.getElementById('participantId').value;
         const assignedForms = Array.from(document.querySelectorAll('.forms-checklist input[type="checkbox"]:checked')).map(cb => parseInt(cb.value));
-        if (!name) {
-            alert('Please fill in all required fields');
+        if (!name || !loginId) {
+            alert(`Please fill in all required fields. Name: '${name}', Login ID: '${loginId}'`);
             return;
         }
+        // Debug: log what is being sent
+        console.log('Saving participant:', { name, loginId, assignedForms });
+
         if (this.currentEditingParticipant && this.currentEditingParticipant.id) {
             // Edit existing participant
-            const body = { name, assignedForms };
-            if (password) body.password = password;
+            const body = { name, loginId, assignedForms };
             const resp = await fetch(`/api/participants/${this.currentEditingParticipant.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -205,15 +207,11 @@ class AdminConsole {
             }
         } else {
             // Add participant
-            if (!password) {
-                alert('Password required for new participant');
-                return;
-            }
             const resp = await fetch('/api/participants', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ name, password })
+                body: JSON.stringify({ name, loginId })
             });
             if (resp.ok) {
                 const data = await resp.json();
@@ -284,10 +282,25 @@ class AdminConsole {
         document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
     }
 
-    showParticipantForm() {
+    showParticipantForm(participant = null) {
         document.getElementById('participantForm').style.display = 'block';
         document.getElementById('participantFormElement').reset();
-        this.currentEditingParticipant = null;
+        this.renderFormsChecklist();
+        if (participant) {
+            document.getElementById('participantName').value = participant.name;
+            document.getElementById('participantId').value = participant.loginId || participant.login_id || '';
+            setTimeout(() => {
+                const assignedForms = new Set((participant.assignedForms || []));
+                document.querySelectorAll('.forms-checklist input[type="checkbox"]').forEach(cb => {
+                    cb.checked = assignedForms.has(parseInt(cb.value));
+                });
+            }, 0);
+            this.currentEditingParticipant = { id: participant.id, name: participant.name, loginId: participant.loginId || participant.login_id, assignedForms: participant.assignedForms };
+            document.getElementById('addParticipantBtn').style.display = 'none';
+        } else {
+            this.currentEditingParticipant = null;
+            document.getElementById('addParticipantBtn').style.display = 'none';
+        }
     }
 
     hideParticipantForm() {
@@ -313,7 +326,7 @@ class AdminConsole {
             const div = document.createElement('div');
             div.className = 'participant-entry';
             div.innerHTML = `
-                <strong>${participant.name}</strong>
+                <strong>${participant.name}</strong> (Login ID: <span class="participant-login-id">${participant.login_id}</span>)
                 <button class="edit-btn" data-id="${participant.id}">Edit</button>
                 <button class="delete-btn" data-id="${participant.id}">Delete</button>
             `;
@@ -338,6 +351,22 @@ class AdminConsole {
         });
         // Re-apply event listeners after re-rendering
         this.reapplyFormEventListeners();
+    }
+
+    renderFormsChecklist() {
+        const checklist = document.getElementById('formsChecklist');
+        if (!checklist) return;
+        if (!this.forms || this.forms.length === 0) {
+            checklist.innerHTML = '<em>No forms available.</em>';
+            return;
+        }
+        const checklistHTML = this.forms.map(form => `
+            <div class="form-checkbox">
+                <input type="checkbox" id="form-${form.id}" value="${form.id}">
+                <label for="form-${form.id}">${form.name}</label>
+            </div>
+        `).join('');
+        checklist.innerHTML = checklistHTML;
     }
 
     reapplyParticipantEventListeners() {
@@ -371,18 +400,17 @@ class AdminConsole {
     }
 
     async editParticipant(participantId) {
-        const participant = this.participants.find(p => p.id === parseInt(participantId));
-        if (participant) {
-            document.getElementById('participantName').value = participant.name;
-            document.getElementById('participantPassword').value = '';
-            // Set assigned forms
-            const assignedForms = new Set(participant.assigned_forms.map(f => f.id));
-            document.querySelectorAll('.forms-checklist input[type="checkbox"]').forEach(cb => {
-                cb.checked = assignedForms.has(parseInt(cb.value));
+        // Fetch participant details and assigned forms from backend
+        const resp = await fetch(`/api/participants/${participantId}`, { credentials: 'include' });
+        if (resp.ok) {
+            const data = await resp.json();
+            this.showParticipantForm({
+                id: data.id,
+                name: data.name,
+                assignedForms: data.assignedForms
             });
-            this.currentEditingParticipant = participant;
-            document.getElementById('participantForm').style.display = 'block';
-            document.getElementById('addParticipantBtn').style.display = 'none';
+        } else {
+            alert('Failed to load participant info');
         }
     }
 

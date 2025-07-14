@@ -18,19 +18,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (participantLoginForm) {
         participantLoginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const password = document.getElementById('participantPassword').value;
+            const login_id = document.getElementById('participantLoginId').value;
             // Use backend API for login
             const resp = await fetch('/api/participant/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ name: '', password }) // name is blank for now, update if you use usernames
+                body: JSON.stringify({ login_id })
             });
             if (resp.ok) {
                 window.location.href = 'participant-portal.html';
             } else {
-                alert('Invalid password. Please try again.');
-                document.getElementById('participantPassword').value = '';
+                alert('Invalid Login ID. Please try again.');
+                document.getElementById('participantLoginId').value = '';
             }
         });
     }
