@@ -15,6 +15,8 @@ const db = new sqlite3.Database(path.join(__dirname, 'ccrt-rsii.db'));
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+// Accept webhook posts from JotForm (x-www-form-urlencoded)
+app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: 'ccrt-rsii-secret',
   resave: false,
@@ -80,6 +82,16 @@ function setAdminPassword(username, password, cb) {
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) return cb(err);
     db.run('INSERT OR REPLACE INTO admins (id, username, password_hash) VALUES ((SELECT id FROM admins WHERE username = ?), ?, ?)', [username, username, hash], cb);
+  });
+}
+
+// Small helper: mark completion after validating assignment
+function markCompletion(participantId, formId, cb) {
+  if (!participantId || !formId) return cb(new Error('Missing participantId or formId'));
+  db.get('SELECT 1 FROM assignments WHERE participant_id = ? AND form_id = ?', [participantId, formId], (err, row) => {
+    if (err) return cb(err);
+    if (!row) return cb(new Error('Assignment not found'));
+    db.run('INSERT OR IGNORE INTO completions (participant_id, form_id) VALUES (?, ?)', [participantId, formId], (err2) => cb(err2));
   });
 }
 
@@ -325,6 +337,21 @@ app.put('/api/forms/:id', requireAdmin, (req, res) => {
   });
 });
 
+// --- Admin: delete a form ---
+app.delete('/api/forms/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  db.run('DELETE FROM assignments WHERE form_id = ?', [id], (err1) => {
+    if (err1) return res.status(500).json({ error: 'Failed to delete assignments' });
+    db.run('DELETE FROM completions WHERE form_id = ?', [id], (err2) => {
+      if (err2) return res.status(500).json({ error: 'Failed to delete completions' });
+      db.run('DELETE FROM forms WHERE id = ?', [id], function(err3) {
+        if (err3) return res.status(500).json({ error: 'Failed to delete form' });
+        res.json({ success: true });
+      });
+    });
+  });
+});
+
 // --- Admin: get participant details and assigned forms ---
 app.get('/api/participants/:id', requireAdmin, (req, res) => {
   const id = req.params.id;
@@ -400,6 +427,88 @@ app.put('/api/participants/:id', requireAdmin, (req, res) => {
     } else {
       res.json({ success: true });
     }
+  });
+});
+
+// --- Admin: manually mark a participant's form complete ---
+app.post('/api/admin/participants/:pid/forms/:fid/complete', requireAdmin, (req, res) => {
+  const pid = parseInt(req.params.pid, 10);
+  const fid = parseInt(req.params.fid, 10);
+  markCompletion(pid, fid, (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// --- JotForm Thank You redirect endpoint ---
+// Configure your JotForm Thank You Page to redirect to:
+// http://<your-host>/api/jotform/thankyou?pid={participant_id}&fid={form_id}
+app.get('/api/jotform/thankyou', (req, res) => {
+  const pid = parseInt(req.query.pid || req.query.participant_id, 10);
+  const fid = parseInt(req.query.fid || req.query.form_id, 10);
+  // Optionally, try to use logged in participant if matches
+  const sessionPid = req.session?.participant?.id;
+  const effectivePid = Number.isInteger(pid) ? pid : (Number.isInteger(sessionPid) ? sessionPid : undefined);
+  if (!effectivePid || !Number.isInteger(fid)) {
+    return res.status(400).send('<h2>Missing participant or form information.</h2>');
+  }
+  markCompletion(effectivePid, fid, (err) => {
+    const success = !err;
+    const title = success ? 'Submission Received' : 'Could not record completion';
+    const message = success ? 'Thank you! Your submission was received and recorded.' : `We received your submission, but could not record it automatically (${err?.message}).`;
+    // Simple HTML page that closes after a short delay and refreshes the opener
+    res.set('Content-Type', 'text/html');
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+  <style>body{font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; padding: 2rem; text-align:center;} .ok{color:#2e7d32} .warn{color:#c62828} .btn{display:inline-block;margin-top:1rem;padding:.6rem 1rem;border-radius:6px;background:#5a31f4;color:#fff;text-decoration:none}</style>
+</head>
+<body>
+  <h2 class="${success ? 'ok' : 'warn'}">${title}</h2>
+  <p>${message}</p>
+  <a class="btn" href="/participant-portal.html">Back to Portal</a>
+  <script>
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type: 'form_completed', pid: ${effectivePid}, fid: ${fid} }, '*');
+      }
+    } catch (e) {}
+    setTimeout(function(){ window.close(); }, 2500);
+  <\/script>
+</body>
+</html>`);
+  });
+});
+
+// --- JotForm Webhook endpoint ---
+// Configure your JotForm webhook to POST to: http://<your-host>/api/jotform/webhook
+// Include hidden fields named participant_id and form_id in your form.
+app.post('/api/jotform/webhook', (req, res) => {
+  // JotForm can send x-www-form-urlencoded; express.urlencoded handles this
+  const body = req.body || {};
+  // Attempt to extract participant_id and form_id (case-insensitive) from all keys
+  const findId = (keys) => {
+    for (const k of Object.keys(body)) {
+      if (k.toLowerCase() === keys) {
+        const val = parseInt(body[k], 10);
+        if (Number.isInteger(val)) return val;
+      }
+    }
+    return undefined;
+  };
+  const pid = findId('participant_id');
+  const fid = findId('form_id');
+
+  if (!pid || !fid) {
+    return res.status(400).json({ error: 'Missing participant_id or form_id in webhook payload' });
+  }
+
+  markCompletion(pid, fid, (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ success: true });
   });
 });
 

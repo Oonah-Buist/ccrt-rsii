@@ -2,10 +2,12 @@
 class ParticipantPortal {
     constructor() {
         this.forms = [];
+        this.participant = null;
         this.init();
     }
 
     async init() {
+        await this.loadParticipant();
         await this.loadFormsFromBackend();
         this.setupEventListeners();
     }
@@ -18,6 +20,28 @@ class ParticipantPortal {
         window.addEventListener('focus', () => {
             this.loadFormsFromBackend();
         });
+        // Listen for Thank You redirect page notifying completion
+        window.addEventListener('message', (event) => {
+            try {
+                const data = event.data || {};
+                if (data.type === 'form_completed') {
+                    // Refresh forms when notified
+                    this.loadFormsFromBackend();
+                }
+            } catch (e) {}
+        });
+    }
+
+    async loadParticipant() {
+        try {
+            const resp = await fetch('/api/participant/me', { credentials: 'include' });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
+            if (!resp.ok) throw new Error('Failed to load participant');
+            const data = await resp.json();
+            this.participant = data.participant;
+        } catch (err) {
+            this.participant = null;
+        }
     }
 
     async loadFormsFromBackend() {
@@ -43,6 +67,27 @@ class ParticipantPortal {
         if (/^https?:\/\//i.test(cleaned)) return cleaned; // external URLs
         const noLeading = cleaned.replace(/^\.?\//, '');
         return '/' + noLeading;
+    }
+
+    // Derive a direct JotForm URL from an embed snippet or URL
+    deriveJotformUrl(embed) {
+        if (!embed) return null;
+        const s = String(embed);
+        // If it's already a direct link
+        const direct = s.match(/https?:\/\/form\.jotform\.com\/(\d+)/i);
+        if (direct) return `https://form.jotform.com/${direct[1]}`;
+        // jsform script embed
+        const jsformId = s.match(/jsform\/(\d+)/i);
+        if (jsformId) return `https://form.jotform.com/${jsformId[1]}`;
+        // iframe src
+        const src = s.match(/src="([^"]+)"/i);
+        if (src && /jotform\.com/i.test(src[1])) {
+            // If it's a jsform URL, convert to direct form URL
+            const idFromSrc = src[1].match(/(?:jsform|\/)(\d+)/i);
+            if (idFromSrc) return `https://form.jotform.com/${idFromSrc[1]}`;
+            return src[1];
+        }
+        return null;
     }
 
     renderForms() {
@@ -75,63 +120,30 @@ class ParticipantPortal {
         formsGrid.innerHTML = formsHTML;
     }
 
+    buildPrefillParams(form) {
+        const params = new URLSearchParams();
+        // Backend-friendly params (for potential Thank You URL placeholders / debugging)
+        if (this.participant && this.participant.id) params.set('participant_id', this.participant.id);
+        if (form && form.id) params.set('form_id', form.id);
+        if (this.participant && this.participant.login_id) params.set('login_id', this.participant.login_id);
+        // JotForm Unique Names used in your forms
+        if (this.participant && this.participant.login_id) params.set('participantLoginID', this.participant.login_id);
+        if (form && form.id) params.set('appFormID', form.id);
+        return params.toString();
+    }
+
     async openForm(formId) {
         const form = this.forms.find(f => f.id == formId);
         if (!form || form.completed) return;
-        // Open JotForm in new window
-        const formWindow = window.open('', '_blank');
-        formWindow.document.write(`
-            <!DOCTYPE html>
-            <html lang=\"en\">
-            <head>
-                <meta charset=\"UTF-8\">
-                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-                <title>${form.name} - CCRT RSII</title>
-                <link rel=\"stylesheet\" href=\"styles/main.css\">
-                <style>body { margin: 0; padding: 20px; } .form-container { max-width: 800px; margin: 0 auto; } .form-header { text-align: center; margin-bottom: 2rem; } .back-btn { background: var(--purple); color: white; border: none; padding: 0.75rem 2rem; border-radius: 6px; cursor: pointer; margin-bottom: 2rem; }</style>
-            </head>
-            <body>
-                <div class=\"form-container\">
-                    <div class=\"form-header\">
-                        <button class=\"back-btn\" onclick=\"window.close()\">← Back to Portal</button>
-                        <h1>${form.name}</h1>
-                    </div>
-                    ${form.jotform_embed}
-                    <script>
-                        let hasBeenSubmitted = false;
-                        function markFormAsSubmitted() {
-                            if (hasBeenSubmitted) return;
-                            hasBeenSubmitted = true;
-                            fetch('/api/participant/complete', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ form_id: ${form.id} })
-                            }).then(() => {
-                                alert('Form submitted successfully! The form has been marked as complete.');
-                                window.close();
-                            });
-                        }
-                        window.addEventListener('message', function(event) {
-                            if (event.data.type === 'form_submission' || event.data.type === 'form_submit' || (event.data && event.data.includes && event.data.includes('submit'))) {
-                                markFormAsSubmitted();
-                            }
-                        });
-                        setTimeout(() => {
-                            const checkForSubmission = setInterval(() => {
-                                const thankYouText = document.body.textContent.toLowerCase();
-                                if (thankYouText.includes('thank you for your submission') || thankYouText.includes('form has been submitted') || thankYouText.includes('submission received')) {
-                                    clearInterval(checkForSubmission);
-                                    markFormAsSubmitted();
-                                }
-                            }, 1000);
-                        }, 5000);
-                    <\/script>
-                </div>
-            </body>
-            </html>
-        `);
-        formWindow.document.close();
+        // Derive direct JotForm URL and append prefill params
+        const baseUrl = this.deriveJotformUrl(form.jotform_embed);
+        if (!baseUrl) {
+            alert('Unable to open form: invalid JotForm embed. Please contact support.');
+            return;
+        }
+        const query = this.buildPrefillParams(form);
+        const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + query;
+        window.open(url, '_blank');
     }
 
     async logout() {
