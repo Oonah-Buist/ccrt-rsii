@@ -6,6 +6,10 @@ class AdminConsole {
         this.init();
     }
 
+    redirectToLogin() {
+        window.location.href = 'admin-login.html';
+    }
+
     async init() {
         await this.loadParticipants();
         await this.loadForms();
@@ -66,6 +70,7 @@ class AdminConsole {
             baaList.innerHTML = '<div>Loading...</div>';
             try {
                 const res = await fetch('/api/baas', { credentials: 'include' });
+                if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
                 if (!res.ok) throw new Error('Failed to fetch BAAs');
                 const data = await res.json();
                 baaList.innerHTML = '';
@@ -96,6 +101,7 @@ class AdminConsole {
                                 credentials: 'include',
                                 body: JSON.stringify(body)
                             });
+                            if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
                             if (resp.ok) {
                                 fetchBaas();
                             } else {
@@ -136,6 +142,7 @@ class AdminConsole {
                     credentials: 'include',
                     body: JSON.stringify({ password, jotform_embed: jotform })
                 });
+                if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
                 if (resp.ok) {
                     baaForm.style.display = 'none';
                     addBaaBtn.style.display = 'block';
@@ -159,6 +166,7 @@ class AdminConsole {
 
     async loadParticipants() {
         const resp = await fetch('/api/participants', { credentials: 'include' });
+        if (resp.status === 401) { this.redirectToLogin(); return; }
         if (resp.ok) {
             const data = await resp.json();
             this.participants = data.participants;
@@ -170,6 +178,7 @@ class AdminConsole {
 
     async loadForms() {
         const resp = await fetch('/api/forms', { credentials: 'include' });
+        if (resp.status === 401) { this.redirectToLogin(); return; }
         if (resp.ok) {
             const data = await resp.json();
             this.forms = data.forms;
@@ -199,6 +208,7 @@ class AdminConsole {
                 credentials: 'include',
                 body: JSON.stringify(body)
             });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
             if (resp.ok) {
                 this.hideParticipantForm();
                 await this.loadParticipants();
@@ -213,16 +223,18 @@ class AdminConsole {
                 credentials: 'include',
                 body: JSON.stringify({ name, loginId })
             });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
             if (resp.ok) {
                 const data = await resp.json();
                 // Assign forms
                 if (assignedForms.length > 0) {
-                    await fetch('/api/assign', {
+                    const assignResp = await fetch('/api/assign', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
                         body: JSON.stringify({ participant_id: data.id, form_ids: assignedForms })
                     });
+                    if (assignResp.status === 401) { this.redirectToLogin(); return; }
                 }
                 this.hideParticipantForm();
                 await this.loadParticipants();
@@ -248,6 +260,7 @@ class AdminConsole {
                 credentials: 'include',
                 body: JSON.stringify({ name: formName, jotform_embed: jotformEmbed, button_image: buttonImage })
             });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
             if (resp.ok) {
                 this.hideFormForm();
                 await this.loadForms();
@@ -262,6 +275,7 @@ class AdminConsole {
                 credentials: 'include',
                 body: JSON.stringify({ name: formName, jotform_embed: jotformEmbed, button_image: buttonImage })
             });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
             if (resp.ok) {
                 this.hideFormForm();
                 await this.loadForms();
@@ -415,6 +429,7 @@ class AdminConsole {
     async editParticipant(participantId) {
         // Fetch participant details and assigned forms from backend
         const resp = await fetch(`/api/participants/${participantId}`, { credentials: 'include' });
+        if (resp.status === 401) { this.redirectToLogin(); return; }
         if (resp.ok) {
             const data = await resp.json();
             this.showParticipantForm({
@@ -434,6 +449,7 @@ class AdminConsole {
                 method: 'DELETE',
                 credentials: 'include'
             });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
             if (resp.ok) {
                 await this.loadParticipants();
             } else {
@@ -460,6 +476,7 @@ class AdminConsole {
                 method: 'DELETE',
                 credentials: 'include'
             });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
             if (resp.ok) {
                 await this.loadForms();
             } else {

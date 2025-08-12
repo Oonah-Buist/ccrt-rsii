@@ -55,6 +55,19 @@ db.serialize(() => {
     completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (participant_id, form_id)
   )`);
+
+  // Ensure missing columns exist (simple migration)
+  db.all(`PRAGMA table_info(forms)`, [], (err, columns) => {
+    if (!err) {
+      const hasButtonImage = columns.some(c => c.name === 'button_image');
+      if (!hasButtonImage) {
+        db.run(`ALTER TABLE forms ADD COLUMN button_image TEXT`, (e) => {
+          if (e) console.error('Failed to add button_image column to forms:', e.message);
+          else console.log('Added button_image column to forms table');
+        });
+      }
+    }
+  });
 });
 
 // Helper: get admin by username

@@ -36,6 +36,15 @@ class ParticipantPortal {
         }
     }
 
+    // Normalize relative image paths like "assets/buttons/Button 1.jpg" to "/assets/buttons/Button 1.jpg"
+    normalizeImagePath(p) {
+        if (!p) return '/assets/buttons/Button 1.jpg';
+        const cleaned = String(p).trim();
+        if (/^https?:\/\//i.test(cleaned)) return cleaned; // external URLs
+        const noLeading = cleaned.replace(/^\.?\//, '');
+        return '/' + noLeading;
+    }
+
     renderForms() {
         const formsGrid = document.getElementById('formsGrid');
         if (!formsGrid) return;
@@ -50,7 +59,7 @@ class ParticipantPortal {
             const pointerEvents = isSubmitted ? 'pointer-events: none;' : '';
             let statusText = isSubmitted ? 'COMPLETED' : 'CLICK TO COMPLETE';
             // Use the button_image field from the backend, fallback to default if missing
-            const imageSrc = form.button_image ? form.button_image : 'assets/buttons/Button 1.jpg';
+            const imageSrc = this.normalizeImagePath(form.button_image);
             return `
                 <div class="${cardClass}">
                     <div class="form-card-content">
