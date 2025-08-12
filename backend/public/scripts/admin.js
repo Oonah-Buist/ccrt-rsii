@@ -243,6 +243,63 @@ class AdminConsole {
         if (document.getElementById('baa').classList.contains('active')) {
             fetchBaas();
         }
+
+        // Load Submissions on tab open
+        const submissionsTabBtn = document.querySelector('.tab-btn[data-tab="submissions"]');
+        if (submissionsTabBtn) {
+            submissionsTabBtn.addEventListener('click', () => this.loadSubmissions());
+        }
+    }
+
+    async loadSubmissions() {
+        const container = document.getElementById('submissionsList');
+        if (!container) return;
+        container.innerHTML = '<div>Loading...</div>';
+        try {
+            const resp = await fetch('/api/admin/submissions', { credentials: 'include' });
+            if (resp.status === 401) { this.redirectToLogin(); return; }
+            if (!resp.ok) throw new Error('Failed to fetch submissions');
+            const data = await resp.json();
+
+            const participantSections = (data.participants || []).map(p => {
+                const items = (p.completed || []).map(c => `<li><strong>${c.form_name}</strong> <span style="color: var(--grey); font-size: 0.9rem;">(${new Date(c.completed_at).toLocaleString()})</span></li>`).join('');
+                return `
+                <div class="submission-item">
+                    <div class="submission-header">
+                        <div>
+                            <div class="submission-participant">${p.name || 'Unnamed Participant'}</div>
+                            <div class="submission-date">Login ID: ${p.login_id || '-'}</div>
+                        </div>
+                    </div>
+                    <div>
+                        ${items ? `<ul>${items}</ul>` : '<em>No completed forms yet.</em>'}
+                    </div>
+                </div>`;
+            }).join('');
+
+            const baaSections = (data.baas || []).map(b => {
+                return `
+                <div class="submission-item">
+                    <div class="submission-header">
+                        <div>
+                            <div class="submission-participant">BAA: ${b.name || 'Unnamed BAA'}</div>
+                            <div class="submission-date">Login ID: ${b.login_id || '-'}</div>
+                        </div>
+                        <div class="submission-date">${b.completed_at ? 'Completed: ' + new Date(b.completed_at).toLocaleString() : 'Not completed yet'}</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `
+                ${participantSections || '<div class="submission-item"><em>No participant submissions yet.</em></div>'}
+                <div class="submission-item" style="background: rgba(165,125,220,0.05); border-style: dashed;">
+                    <div class="submission-participant">Business Associates</div>
+                </div>
+                ${baaSections || '<div class="submission-item"><em>No BAA submissions yet.</em></div>'}
+            `;
+        } catch (e) {
+            container.innerHTML = `<div style="color:red;">${e.message}</div>`;
+        }
     }
 
     async loadParticipants() {

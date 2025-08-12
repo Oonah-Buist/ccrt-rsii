@@ -60,6 +60,12 @@ db.serialize(() => {
     PRIMARY KEY (participant_id, form_id)
   )`);
 
+  // Track BAA submissions (one record per BAA)
+  db.run(`CREATE TABLE IF NOT EXISTS baa_completions (
+    baa_id INTEGER PRIMARY KEY,
+    completed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   // Ensure missing columns exist (simple migration)
   db.all(`PRAGMA table_info(forms)`, [], (err, columns) => {
     if (!err) {
@@ -222,6 +228,31 @@ app.get('/api/baa/form', (req, res) => {
   db.get('SELECT jotform_embed FROM baas WHERE id = ?', [req.session.baa.id], (err, row) => {
     if (err || !row) return res.status(404).json({ error: 'No form assigned' });
     res.json({ embedCode: row.jotform_embed });
+  });
+});
+
+// Record BAA completion via Thank You redirect
+// Configure JotForm Thank You to redirect to: /api/baa/thankyou?baa_id={baa_id}
+app.get('/api/baa/thankyou', (req, res) => {
+  const baaIdFromQuery = parseInt(req.query.baa_id, 10);
+  const baaIdFromSession = req.session?.baa?.id;
+  const baaId = Number.isInteger(baaIdFromQuery) ? baaIdFromQuery : (Number.isInteger(baaIdFromSession) ? baaIdFromSession : undefined);
+  if (!baaId) {
+    res.status(400).send('<h2>Missing BAA information.</h2>');
+    return;
+  }
+  db.run('INSERT OR REPLACE INTO baa_completions (baa_id, completed_at) VALUES (?, CURRENT_TIMESTAMP)', [baaId], (err) => {
+    const success = !err;
+    const title = success ? 'BAA Submission Received' : 'Could not record BAA completion';
+    const message = success ? 'Thank you! Your BAA submission was received and recorded.' : 'We received your submission, but could not record it automatically.';
+    res.set('Content-Type', 'text/html');
+    res.send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>${title}</title><meta http-equiv="refresh" content="2"></head>
+<body style="font-family: Arial, sans-serif;">
+  <h2>${title}</h2>
+  <p>${message}</p>
+  <script>setTimeout(function(){ if (window.opener) { try { window.opener.location.reload(); } catch(e){} } window.close(); }, 1500);</script>
+</body></html>`);
   });
 });
 
@@ -578,6 +609,45 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong' });
+});
+
+// --- Admin submissions aggregate ---
+app.get('/api/admin/submissions', requireAdmin, (req, res) => {
+  const result = { participants: [], baas: [] };
+
+  // Participants with completed forms
+  db.all(`
+    SELECT p.id as participant_id, p.name as participant_name, p.login_id,
+           f.id as form_id, f.name as form_name, c.completed_at
+    FROM participants p
+    LEFT JOIN completions c ON c.participant_id = p.id
+    LEFT JOIN forms f ON f.id = c.form_id
+    ORDER BY p.name COLLATE NOCASE, c.completed_at
+  `, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch participant submissions' });
+    const map = new Map();
+    rows.forEach(r => {
+      if (!map.has(r.participant_id)) {
+        map.set(r.participant_id, { id: r.participant_id, name: r.participant_name, login_id: r.login_id, completed: [] });
+      }
+      if (r.form_id) {
+        map.get(r.participant_id).completed.push({ form_id: r.form_id, form_name: r.form_name, completed_at: r.completed_at });
+      }
+    });
+    result.participants = Array.from(map.values());
+
+    // BAAs with completion status
+    db.all(`
+      SELECT b.id as baa_id, b.name, b.login_id, bc.completed_at
+      FROM baas b
+      LEFT JOIN baa_completions bc ON bc.baa_id = b.id
+      ORDER BY b.name COLLATE NOCASE
+    `, [], (err2, rows2) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch BAA submissions' });
+      result.baas = rows2.map(r => ({ id: r.baa_id, name: r.name, login_id: r.login_id, completed_at: r.completed_at }));
+      res.json(result);
+    });
+  });
 });
 
 // Start server
