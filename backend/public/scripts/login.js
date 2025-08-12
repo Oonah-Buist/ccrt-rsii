@@ -38,17 +38,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // BAA Login Form
     const baaLoginForm = document.getElementById('baaLoginForm');
     if (baaLoginForm) {
-        baaLoginForm.addEventListener('submit', function(e) {
+        baaLoginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const password = document.getElementById('baaPassword').value;
-            
-            // Check for fixed password
-            if (password === '12345678') {
-                // Redirect to BAA form page
-                window.location.href = 'baa-form.html';
-            } else {
-                alert('Invalid password. Please try again.');
-                document.getElementById('baaPassword').value = '';
+            const login_id = document.getElementById('baaLoginId').value;
+            try {
+                const resp = await fetch('/api/baa/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ login_id })
+                });
+                if (resp.ok) {
+                    window.location.href = 'baa-form.html';
+                } else if (resp.status === 401) {
+                    alert('Invalid Login ID. Please try again.');
+                    document.getElementById('baaLoginId').value = '';
+                } else {
+                    alert('Login failed. Please try again later.');
+                }
+            } catch (err) {
+                console.error('BAA login error:', err);
+                alert('Network error. Please try again.');
             }
         });
     }

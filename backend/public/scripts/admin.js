@@ -80,21 +80,92 @@ class AdminConsole {
                     data.baas.forEach(baa => {
                         const entry = document.createElement('div');
                         entry.className = 'baa-entry';
-                        entry.innerHTML = `<strong>BAA #${baa.id}</strong><br><em>JotForm:</em> <code>${baa.jotform_embed ? baa.jotform_embed.replace(/</g, '&lt;') : ''}</code>`;
-                        // Add update form for each BAA
-                        const updateForm = document.createElement('form');
-                        updateForm.innerHTML = `
-                            <input type="password" placeholder="New Password" name="password" style="margin-right:8px;">
-                            <input type="text" placeholder="New JotForm Embed" name="jotform_embed" style="width:300px; margin-right:8px;">
-                            <button type="submit">Update</button>
+
+                        const jotPreviewRaw = baa.jotform_embed || '';
+                        const jotPreviewEsc = jotPreviewRaw.replace(/</g, '&lt;');
+                        const jotPreviewShort = jotPreviewEsc.length > 80 ? (jotPreviewEsc.slice(0, 80) + '…') : jotPreviewEsc;
+
+                        entry.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem;">
+                              <div>
+                                <strong>${baa.name ? baa.name : `BAA #${baa.id}`}</strong>
+                                ${baa.email ? `<div style=\"font-size:0.9rem;color:var(--grey);\">${baa.email}</div>` : ''}
+                                ${baa.login_id ? `<div style="font-size:0.9rem;color:var(--grey);">Login ID: <code>${baa.login_id}</code></div>` : ''}
+                                <div style="margin-top: 0.25rem; font-size: 0.9rem; color: var(--grey);">
+                                  <em>JotForm:</em> <code>${jotPreviewShort}</code>
+                                </div>
+                              </div>
+                              <div class="item-actions">
+                                <button class="edit-btn" data-id="${baa.id}">Edit</button>
+                                <button class="delete-btn" data-id="${baa.id}">Delete</button>
+                              </div>
+                            </div>
                         `;
-                        updateForm.onsubmit = async (e) => {
-                            e.preventDefault();
-                            const formData = new FormData(updateForm);
+
+                        // Inline editor (hidden by default)
+                        const editor = document.createElement('div');
+                        editor.className = 'baa-editor';
+                        editor.style.display = 'none';
+                        editor.innerHTML = `
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label>Name:</label>
+                                <input type="text" name="name" placeholder="Business Associate name">
+                            </div>
+                            <div class="form-group">
+                                <label>Email:</label>
+                                <input type="email" name="email" placeholder="Email">
+                            </div>
+                            <div class="form-group">
+                                <label>BAA Login ID:</label>
+                                <input type="text" name="login_id" placeholder="Login ID">
+                            </div>
+                            <div class="form-group">
+                                <label>JotForm Embed Code:</label>
+                                <textarea name="jotform_embed" rows="3" placeholder="<script type='text/javascript' src='https://form.jotform.com/jsform/...'></script>"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="save-baa-btn">Save</button>
+                                <button type="button" class="cancel-baa-edit-btn">Cancel</button>
+                            </div>
+                        `;
+
+                        entry.appendChild(editor);
+
+                        // Wire up actions
+                        const editBtn = entry.querySelector('.edit-btn');
+                        const deleteBtn = entry.querySelector('.delete-btn');
+                        const saveBtn = editor.querySelector('.save-baa-btn');
+                        const cancelEditBtn = editor.querySelector('.cancel-baa-edit-btn');
+                        const nameInput = editor.querySelector('input[name="name"]');
+                        const emailInput = editor.querySelector('input[name="email"]');
+                        const loginIdInput = editor.querySelector('input[name="login_id"]');
+                        const jfTextarea = editor.querySelector('textarea[name="jotform_embed"]');
+
+                        editBtn.addEventListener('click', () => {
+                            // Prefill with current fields
+                            nameInput.value = baa.name || '';
+                            emailInput.value = baa.email || '';
+                            loginIdInput.value = baa.login_id || '';
+                            jfTextarea.value = baa.jotform_embed || '';
+                            editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+                        });
+
+                        cancelEditBtn.addEventListener('click', () => {
+                            editor.style.display = 'none';
+                        });
+
+                        saveBtn.addEventListener('click', async () => {
                             const body = {};
-                            if (formData.get('password')) body.password = formData.get('password');
-                            if (formData.get('jotform_embed')) body.jotform_embed = formData.get('jotform_embed');
-                            if (!body.password && !body.jotform_embed) return;
+                            const newName = (nameInput.value || '').trim();
+                            const newEmail = (emailInput.value || '').trim();
+                            const newLoginId = (loginIdInput.value || '').trim();
+                            const newJF = (jfTextarea.value || '').trim();
+                            if (newName !== (baa.name || '')) body.name = newName;
+                            if (newEmail !== (baa.email || '')) body.email = newEmail;
+                            if (newLoginId !== (baa.login_id || '')) body.login_id = newLoginId;
+                            if (newJF !== (baa.jotform_embed || '')) body.jotform_embed = newJF;
+                            if (Object.keys(body).length === 0) { editor.style.display = 'none'; return; }
+
                             const resp = await fetch(`/api/baas/${baa.id}`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
@@ -107,8 +178,22 @@ class AdminConsole {
                             } else {
                                 alert('Failed to update BAA');
                             }
-                        };
-                        entry.appendChild(updateForm);
+                        });
+
+                        deleteBtn.addEventListener('click', async () => {
+                            if (!confirm('Are you sure you want to delete this BAA?')) return;
+                            const resp = await fetch(`/api/baas/${baa.id}`, {
+                                method: 'DELETE',
+                                credentials: 'include'
+                            });
+                            if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
+                            if (resp.ok) {
+                                fetchBaas();
+                            } else {
+                                alert('Failed to delete BAA');
+                            }
+                        });
+
                         baaList.appendChild(entry);
                     });
                 }
@@ -133,14 +218,17 @@ class AdminConsole {
         if (baaFormElement) {
             baaFormElement.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const password = document.getElementById('baaPassword').value;
+                const name = document.getElementById('baaName').value;
+                const email = document.getElementById('baaEmail').value;
+                const loginId = document.getElementById('baaLoginId').value;
                 const jotform = document.getElementById('baaJotform').value;
+                if (!name || !email || !loginId || !jotform) { alert('Please fill in all required fields'); return; }
                 // Add BAA via backend
                 const resp = await fetch('/api/baas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ password, jotform_embed: jotform })
+                    body: JSON.stringify({ name, email, login_id: loginId, jotform_embed: jotform })
                 });
                 if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
                 if (resp.ok) {

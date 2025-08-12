@@ -33,7 +33,9 @@ db.serialize(() => {
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS baas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    password_hash TEXT,
+    name TEXT,
+    email TEXT,
+    login_id TEXT,
     jotform_embed TEXT
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS participants (
@@ -69,6 +71,68 @@ db.serialize(() => {
         });
       }
     }
+  });
+
+  // Ensure baas table columns and drop legacy password_hash by rebuild
+  db.all(`PRAGMA table_info(baas)`, [], (err, columns) => {
+    if (err || !Array.isArray(columns)) return;
+    const hasName = columns.some(c => c.name === 'name');
+    const hasEmail = columns.some(c => c.name === 'email');
+    const hasLoginId = columns.some(c => c.name === 'login_id');
+    const hasPasswordHash = columns.some(c => c.name === 'password_hash');
+
+    let pending = 0;
+    const maybeStartDropMigration = () => {
+      if (pending !== 0) return;
+      if (!hasPasswordHash) return; // nothing to drop
+
+      console.log('Migrating baas table to remove legacy password_hash column...');
+      // Rebuild table without password_hash
+      db.run('BEGIN TRANSACTION', (e1) => {
+        if (e1) { console.error('Migration failed to BEGIN:', e1.message); return; }
+        db.run('DROP TABLE IF EXISTS baas_new', (e1a) => {
+          if (e1a) { console.error('Migration failed (drop temp):', e1a.message); db.run('ROLLBACK'); return; }
+          db.run(`CREATE TABLE baas_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT,
+            login_id TEXT,
+            jotform_embed TEXT
+          )`, (e2) => {
+            if (e2) { console.error('Migration failed to create baas_new:', e2.message); db.run('ROLLBACK'); return; }
+            db.run(`INSERT INTO baas_new (id, name, email, login_id, jotform_embed)
+                    SELECT id, name, email, login_id, jotform_embed FROM baas`, (e3) => {
+              if (e3) { console.error('Migration failed to copy data:', e3.message); db.run('ROLLBACK'); return; }
+              db.run('DROP TABLE baas', (e4) => {
+                if (e4) { console.error('Migration failed to drop old baas:', e4.message); db.run('ROLLBACK'); return; }
+                db.run('ALTER TABLE baas_new RENAME TO baas', (e5) => {
+                  if (e5) { console.error('Migration failed to rename table:', e5.message); db.run('ROLLBACK'); return; }
+                  db.run('COMMIT', (e6) => {
+                    if (e6) console.error('Migration failed to COMMIT:', e6.message);
+                    else console.log('baas table migrated: password_hash removed');
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    };
+
+    const addColumn = (sql, label) => {
+      pending++;
+      db.run(sql, (e) => {
+        if (e) console.error(`Failed to add ${label} column to baas:`, e.message);
+        else console.log(`Added ${label} column to baas table`);
+        pending--;
+        maybeStartDropMigration();
+      });
+    };
+
+    if (!hasName) addColumn('ALTER TABLE baas ADD COLUMN name TEXT', 'name');
+    if (!hasEmail) addColumn('ALTER TABLE baas ADD COLUMN email TEXT', 'email');
+    if (!hasLoginId) addColumn('ALTER TABLE baas ADD COLUMN login_id TEXT', 'login_id');
+    if (pending === 0) maybeStartDropMigration();
   });
 });
 
@@ -143,17 +207,12 @@ app.post('/api/admin/change-password', (req, res) => {
 
 // --- BAA login ---
 app.post('/api/baa/login', (req, res) => {
-  const { password } = req.body;
-  db.get('SELECT * FROM baas WHERE password_hash IS NOT NULL', [], (err, baa) => {
+  const { login_id } = req.body;
+  if (!login_id) return res.status(400).json({ error: 'login_id required' });
+  db.get('SELECT * FROM baas WHERE login_id = ?', [login_id], (err, baa) => {
     if (err || !baa) return res.status(401).json({ error: 'Invalid credentials' });
-    bcrypt.compare(password, baa.password_hash, (err, result) => {
-      if (result) {
-        req.session.baa = { id: baa.id };
-        res.json({ success: true });
-      } else {
-        res.status(401).json({ error: 'Invalid credentials' });
-      }
-    });
+    req.session.baa = { id: baa.id };
+    res.json({ success: true });
   });
 });
 
@@ -180,7 +239,7 @@ function requireParticipant(req, res, next) {
 
 // --- List all BAAs ---
 app.get('/api/baas', requireAdmin, (req, res) => {
-  db.all('SELECT id, jotform_embed FROM baas', [], (err, rows) => {
+  db.all('SELECT id, name, email, login_id, jotform_embed FROM baas', [], (err, rows) => {
     if (err) return res.status(500).json({ error: 'Failed to fetch BAAs' });
     res.json({ baas: rows });
   });
@@ -188,43 +247,43 @@ app.get('/api/baas', requireAdmin, (req, res) => {
 
 // --- Add a new BAA ---
 app.post('/api/baas', requireAdmin, (req, res) => {
-  const { password, jotform_embed } = req.body;
-  if (!password || !jotform_embed) return res.status(400).json({ error: 'Password and JotForm embed code required' });
-  bcrypt.hash(password, 10, (err, hash) => {
-    if (err) return res.status(500).json({ error: 'Failed to hash password' });
-    db.run('INSERT INTO baas (password_hash, jotform_embed) VALUES (?, ?)', [hash, jotform_embed], function(err) {
-      if (err) return res.status(500).json({ error: 'Failed to add BAA' });
-      res.json({ id: this.lastID });
-    });
+  const { name, email, login_id, jotform_embed } = req.body;
+  if (!login_id) return res.status(400).json({ error: 'BAA Login ID required' });
+  if (!jotform_embed) return res.status(400).json({ error: 'JotForm embed code required' });
+  // name/email optional
+  db.run('INSERT INTO baas (name, email, login_id, jotform_embed) VALUES (?, ?, ?, ?)', [name || null, email || null, login_id, jotform_embed], function(err) {
+    if (err) return res.status(500).json({ error: 'Failed to add BAA' });
+    res.json({ id: this.lastID });
   });
 });
 
-// --- Update a BAA’s password or JotForm code ---
+// --- Update a BAA’s details ---
 app.put('/api/baas/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
-  const { password, jotform_embed } = req.body;
-  if (!password && !jotform_embed) return res.status(400).json({ error: 'Nothing to update' });
-  if (password) {
-    bcrypt.hash(password, 10, (err, hash) => {
-      if (err) return res.status(500).json({ error: 'Failed to hash password' });
-      db.run('UPDATE baas SET password_hash = ? WHERE id = ?', [hash, id], function(err) {
-        if (err) return res.status(500).json({ error: 'Failed to update password' });
-        if (jotform_embed) {
-          db.run('UPDATE baas SET jotform_embed = ? WHERE id = ?', [jotform_embed, id], function(err) {
-            if (err) return res.status(500).json({ error: 'Failed to update JotForm' });
-            res.json({ success: true });
-          });
-        } else {
-          res.json({ success: true });
-        }
-      });
-    });
-  } else if (jotform_embed) {
-    db.run('UPDATE baas SET jotform_embed = ? WHERE id = ?', [jotform_embed, id], function(err) {
-      if (err) return res.status(500).json({ error: 'Failed to update JotForm' });
-      res.json({ success: true });
-    });
-  }
+  const { name, email, login_id, jotform_embed } = req.body;
+  if (!name && !email && !login_id && !jotform_embed) return res.status(400).json({ error: 'Nothing to update' });
+
+  const updates = [];
+  const params = [];
+  if (typeof name === 'string') { updates.push('name = ?'); params.push(name); }
+  if (typeof email === 'string') { updates.push('email = ?'); params.push(email); }
+  if (typeof login_id === 'string') { updates.push('login_id = ?'); params.push(login_id); }
+  if (typeof jotform_embed === 'string') { updates.push('jotform_embed = ?'); params.push(jotform_embed); }
+  const sql = `UPDATE baas SET ${updates.join(', ')} WHERE id = ?`;
+  params.push(id);
+  db.run(sql, params, function(err) {
+    if (err) return res.status(500).json({ error: 'Failed to update BAA' });
+    res.json({ success: true });
+  });
+});
+
+// --- Delete a BAA ---
+app.delete('/api/baas/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  db.run('DELETE FROM baas WHERE id = ?', [id], function(err) {
+    if (err) return res.status(500).json({ error: 'Failed to delete BAA' });
+    res.json({ success: true });
+  });
 });
 
 // --- Admin: add participant ---

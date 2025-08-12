@@ -164,7 +164,8 @@
 }
 
 .participants-list,
-.forms-list {
+.forms-list,
+.baa-list {
     display: grid;
     gap: 1rem;
 }
@@ -276,9 +277,18 @@
 }
 
 .participant-entry,
-.form-entry {
+.form-entry,
+.baa-entry {
     width: 100%;
     margin-bottom: 1rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--light-purple);
+}
+
+.baa-editor .form-group label {
+    color: var(--purple);
 }
 
 /* Responsive Design */
