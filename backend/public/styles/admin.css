@@ -71,7 +71,7 @@
     transform: translateY(-2px);
 }
 
-.participant-form, .form-form {
+.participant-form, .form-form, .baa-form {
     background: rgba(165, 125, 220, 0.1);
     padding: 2rem;
     border-radius: 8px;
@@ -160,6 +160,22 @@
 }
 
 .form-actions button[type="button"]:hover {
+    background: #666;
+}
+
+/* Ensure inline BAA editor buttons match theme */
+.baa-editor .form-actions .save-baa-btn {
+    background: var(--purple);
+    color: #fff;
+}
+.baa-editor .form-actions .save-baa-btn:hover {
+    background: var(--blue);
+}
+.baa-editor .form-actions .cancel-baa-edit-btn {
+    background: var(--grey);
+    color: #fff;
+}
+.baa-editor .form-actions .cancel-baa-edit-btn:hover {
     background: #666;
 }
 
