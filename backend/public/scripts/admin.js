@@ -81,19 +81,12 @@ class AdminConsole {
                         const entry = document.createElement('div');
                         entry.className = 'baa-entry';
 
-                        const jotPreviewRaw = baa.jotform_embed || '';
-                        const jotPreviewEsc = jotPreviewRaw.replace(/</g, '&lt;');
-                        const jotPreviewShort = jotPreviewEsc.length > 80 ? (jotPreviewEsc.slice(0, 80) + '…') : jotPreviewEsc;
-
+                        // Render like participants: name + Login ID, no JotForm preview
                         entry.innerHTML = `
                             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem;">
                               <div>
                                 <strong>${baa.name ? baa.name : `BAA #${baa.id}`}</strong>
-                                ${baa.email ? `<div style=\"font-size:0.9rem;color:var(--grey);\">${baa.email}</div>` : ''}
-                                ${baa.login_id ? `<div style="font-size:0.9rem;color:var(--grey);">Login ID: <code>${baa.login_id}</code></div>` : ''}
-                                <div style="margin-top: 0.25rem; font-size: 0.9rem; color: var(--grey);">
-                                  <em>JotForm:</em> <code>${jotPreviewShort}</code>
-                                </div>
+                                ${baa.login_id ? ` (Login ID: <span class="baa-login-id">${baa.login_id}</span>)` : ''}
                               </div>
                               <div class="item-actions">
                                 <button class="edit-btn" data-id="${baa.id}">Edit</button>
