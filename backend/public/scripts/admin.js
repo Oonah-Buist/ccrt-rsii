@@ -624,6 +624,22 @@ class AdminConsole {
     }
 }
 
+// Ensure all admin API calls include credentials for session cookies
+function apiFetch(url, options = {}) {
+  return fetch(url, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    ...options
+  });
+}
+
+if (typeof window !== 'undefined') {
+  // Small hint for operators in production
+  if (location.hostname && location.protocol === 'https:') {
+    console.log('Admin console running over HTTPS. Debug/test pages may be blocked in production.');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     new AdminConsole();
 });

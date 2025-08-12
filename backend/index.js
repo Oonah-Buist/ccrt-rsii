@@ -5,24 +5,81 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+// Added security and ops middleware
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const SQLiteStore = require('connect-sqlite3')(session);
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // SQLite DB setup
 const db = new sqlite3.Database(path.join(__dirname, 'ccrt-rsii.db'));
 
 // Middleware
-app.use(cors({ origin: true, credentials: true }));
+// Trust proxy when behind reverse proxy (Nginx/Cloudflare) for correct proto & IP
+if (process.env.TRUST_PROXY === 'true' || NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// Optionally enforce HTTPS redirects when behind a proxy
+if (process.env.ENFORCE_HTTPS === 'true') {
+  app.use((req, res, next) => {
+    if (req.secure) return next();
+    // Some proxies set x-forwarded-proto
+    if (req.headers['x-forwarded-proto'] === 'https') return next();
+    return res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
+  });
+}
+
+// Security headers
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false // keep simple; can be tightened later
+}));
+
+// Logging & compression
+app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(compression());
+
+// CORS: if ORIGIN is set, restrict; else allow same-origin
+if (process.env.CORS_ORIGIN) {
+  app.use(cors({ origin: process.env.CORS_ORIGIN.split(','), credentials: true }));
+} else {
+  app.use(cors({ origin: true, credentials: true }));
+}
+
 app.use(express.json());
 // Accept webhook posts from JotForm (x-www-form-urlencoded)
 app.use(express.urlencoded({ extended: true }));
+
+// Sessions: use persistent SQLite store
+const sessionSecret = process.env.SESSION_SECRET || 'change-this-in-prod';
 app.use(session({
-  secret: 'ccrt-rsii-secret',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set to true if using HTTPS
+  store: new SQLiteStore({ db: 'sessions.sqlite', dir: __dirname }),
+  cookie: {
+    secure: NODE_ENV === 'production',
+    sameSite: NODE_ENV === 'production' ? 'lax' : 'lax',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 8 // 8 hours
+  }
 }));
+
+// Basic rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use(['/api/admin/login', '/api/participant/login', '/api/baa/login'], authLimiter);
 
 // DB schema setup (run once)
 db.serialize(() => {
@@ -165,10 +222,11 @@ function markCompletion(participantId, formId, cb) {
   });
 }
 
-// On first run, set default admin password if not set
+// On first run, set default admin password if not set; read from env if provided
 getAdmin('admin', (err, admin) => {
   if (!admin) {
-    setAdminPassword('admin', 'ChangeMe123!', () => {
+    const defaultPwd = process.env.ADMIN_DEFAULT_PASSWORD || 'ChangeMe123!';
+    setAdminPassword('admin', defaultPwd, () => {
       console.log('Default admin password set.');
     });
   }
@@ -603,7 +661,24 @@ app.post('/api/jotform/webhook', (req, res) => {
 });
 
 // Serve static files (should be after API routes)
+if (NODE_ENV === 'production') {
+  // Optionally block debug/test pages in production
+  app.use((req, res, next) => {
+    if (/\b(debug|test)\b-?.*\.(html|js|css)$/i.test(req.path)) {
+      return res.status(404).send('Not found');
+    }
+    next();
+  });
+}
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Health check endpoint
+app.get('/healthz', (req, res) => {
+  db.get('SELECT 1 as ok', [], (err, row) => {
+    if (err) return res.status(500).json({ status: 'error' });
+    res.json({ status: 'ok' });
+  });
+});
 
 // --- Error handling middleware ---
 app.use((err, req, res, next) => {
