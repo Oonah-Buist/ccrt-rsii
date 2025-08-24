@@ -681,15 +681,10 @@ app.post('/api/jotform/webhook', (req, res) => {
 const publicDir = path.join(__dirname, 'public');
 const distDir = path.join(__dirname, 'dist');
 
-// Optionally block debug/test pages in production
-if (NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    if (/\b(debug|test)\b-?.*\.(html|js|css)$/i.test(req.path)) {
-      return res.status(404).send('Not found');
-    }
-    next();
-  });
-}
+// Explicit mounts for common folders
+app.use('/assets', express.static(path.join(publicDir, 'assets')));
+app.use('/styles', express.static(path.join(publicDir, 'styles')));
+app.use('/scripts', express.static(path.join(publicDir, 'scripts')));
 
 // Always serve the real public folder
 app.use(express.static(publicDir));
@@ -765,4 +760,5 @@ app.get('/api/admin/submissions', requireAdmin, (req, res) => {
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log('Serving static from:', publicDir);
 });
