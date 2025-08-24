@@ -712,6 +712,21 @@ app.get('/healthz', (req, res) => {
   });
 });
 
+// Debug endpoint to verify static root and assets
+app.get('/__static', (req, res) => {
+  const assetPath = path.join(publicDir, 'assets', '3-colour-logo-1.jpg');
+  let assetsSample = [];
+  try {
+    assetsSample = fs.readdirSync(path.join(publicDir, 'assets')).slice(0, 20);
+  } catch {}
+  res.json({
+    publicDir,
+    exists: fs.existsSync(assetPath),
+    assetPath,
+    assetsSample
+  });
+});
+
 // --- Error handling middleware ---
 app.use((err, req, res, next) => {
   console.error(err.stack);
