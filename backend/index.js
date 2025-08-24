@@ -727,16 +727,28 @@ app.get('/healthz', (req, res) => {
 
 // Debug endpoint to verify static root and assets
 app.get('/__static', (req, res) => {
+  const dirs = {};
+  const safeList = (p) => { try { return fs.readdirSync(p); } catch { return null; } };
   const assetPath = path.join(publicDir, 'assets', '3-colour-logo-1.jpg');
-  let assetsSample = [];
-  try {
-    assetsSample = fs.readdirSync(path.join(publicDir, 'assets')).slice(0, 20);
-  } catch {}
-  res.json({
+  const pathsToCheck = {
+    root: '/',
+    app: '/app',
+    appBackend: '/app/backend',
+    cwd: process.cwd(),
+    __dirname,
     publicDir,
-    exists: fs.existsSync(assetPath),
-    assetPath,
-    assetsSample
+    publicAssets: path.join(publicDir, 'assets')
+  };
+  for (const [k, p] of Object.entries(pathsToCheck)) {
+    dirs[k] = { path: p, exists: fs.existsSync(p), list: safeList(p) };
+  }
+  res.json({
+    cwd: process.cwd(),
+    __dirname,
+    publicDir,
+    testAsset: assetPath,
+    testAssetExists: fs.existsSync(assetPath),
+    dirs
   });
 });
 
