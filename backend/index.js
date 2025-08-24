@@ -5,6 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 // Added security and ops middleware
 const helmet = require('helmet');
 const compression = require('compression');
@@ -661,16 +662,30 @@ app.post('/api/jotform/webhook', (req, res) => {
 });
 
 // Serve static files (should be after API routes)
+const publicDir = path.join(__dirname, 'public');
+const distDir = path.join(__dirname, 'dist');
+let staticDir = publicDir;
+if (NODE_ENV === 'production' && fs.existsSync(distDir)) {
+  staticDir = distDir;
+}
 if (NODE_ENV === 'production') {
   // Optionally block debug/test pages in production
   app.use((req, res, next) => {
-    if (/\b(debug|test)\b-?.*\.(html|js|css)$/i.test(req.path)) {
+    if (/(debug|test)\b-?.*\.(html|js|css)$/i.test(req.path)) {
       return res.status(404).send('Not found');
     }
     next();
   });
 }
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(staticDir));
+
+// If serving a built SPA in production, provide a fallback to index.html
+if (NODE_ENV === 'production' && staticDir === distDir) {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path === '/health' || req.path === '/healthz') return next();
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
