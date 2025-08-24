@@ -696,6 +696,7 @@ let distDir = distCandidates.find(p => fs.existsSync(p));
 
 // Explicit mounts for common folders
 app.use('/assets', express.static(path.join(publicDir, 'assets')));
+app.use('/assets', express.static(path.join(publicDir, 'Assets'))); // case-insensitive alias
 app.use('/styles', express.static(path.join(publicDir, 'styles')));
 app.use('/scripts', express.static(path.join(publicDir, 'scripts')));
 
