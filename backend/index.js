@@ -27,6 +27,16 @@ try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); } catch {}
 try { fs.mkdirSync(path.dirname(SESSIONS_DB_FILE), { recursive: true }); } catch {}
 const db = new sqlite3.Database(DB_FILE);
 
+// Improve SQLite concurrency & reliability
+try {
+  db.exec(
+    'PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA synchronous=NORMAL; PRAGMA foreign_keys=ON;',
+    (e) => { if (e) console.warn('SQLite PRAGMA setup warning:', e.message); }
+  );
+} catch (e) {
+  console.warn('SQLite PRAGMA setup failed:', e.message);
+}
+
 // Middleware
 // Trust proxy when behind reverse proxy (Nginx/Cloudflare) for correct proto & IP
 if (process.env.TRUST_PROXY === 'true' || NODE_ENV === 'production') {
