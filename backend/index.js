@@ -680,23 +680,26 @@ app.post('/api/jotform/webhook', (req, res) => {
 // Serve static files (should be after API routes)
 const publicDir = path.join(__dirname, 'public');
 const distDir = path.join(__dirname, 'dist');
-let staticDir = publicDir;
-if (NODE_ENV === 'production' && fs.existsSync(distDir)) {
-  staticDir = distDir;
-}
+
+// Optionally block debug/test pages in production
 if (NODE_ENV === 'production') {
-  // Optionally block debug/test pages in production
   app.use((req, res, next) => {
-    if (/(debug|test)\b-?.*\.(html|js|css)$/i.test(req.path)) {
+    if (/\b(debug|test)\b-?.*\.(html|js|css)$/i.test(req.path)) {
       return res.status(404).send('Not found');
     }
     next();
   });
 }
-app.use(express.static(staticDir));
 
-// If serving a built SPA in production, provide a fallback to index.html
-if (NODE_ENV === 'production' && staticDir === distDir) {
+// Always serve the real public folder
+app.use(express.static(publicDir));
+// Also serve dist if present (e.g., a built SPA)
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
+
+// If serving a built SPA, provide a fallback to index.html from dist
+if (NODE_ENV === 'production' && fs.existsSync(distDir)) {
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path === '/health' || req.path === '/healthz') return next();
     res.sendFile(path.join(distDir, 'index.html'));
