@@ -678,25 +678,38 @@ app.post('/api/jotform/webhook', (req, res) => {
 });
 
 // Serve static files (should be after API routes)
-const publicDir = path.join(__dirname, 'public');
-const distDir = path.join(__dirname, 'dist');
+// Resolve public directory robustly for different deploy roots
+const candidates = [
+  path.join(__dirname, 'public'),
+  path.join(__dirname, 'backend', 'public'),
+  path.join(process.cwd(), 'backend', 'public'),
+  path.join(process.cwd(), 'public')
+];
+let publicDir = candidates.find(p => fs.existsSync(p)) || path.join(__dirname, 'public');
+const distCandidates = [
+  path.join(__dirname, 'dist'),
+  path.join(__dirname, 'backend', 'dist'),
+  path.join(process.cwd(), 'backend', 'dist'),
+  path.join(process.cwd(), 'dist')
+];
+let distDir = distCandidates.find(p => fs.existsSync(p));
 
 // Explicit mounts for common folders
 app.use('/assets', express.static(path.join(publicDir, 'assets')));
 app.use('/styles', express.static(path.join(publicDir, 'styles')));
 app.use('/scripts', express.static(path.join(publicDir, 'scripts')));
 
-// Always serve the real public folder
+// Always serve the resolved public folder
 app.use(express.static(publicDir));
 // Also serve dist if present (e.g., a built SPA)
-if (fs.existsSync(distDir)) {
+if (distDir && fs.existsSync(distDir)) {
   app.use(express.static(distDir));
 }
 
 // If serving a built SPA, provide a fallback to index.html from dist
-if (NODE_ENV === 'production' && fs.existsSync(distDir)) {
+if (NODE_ENV === 'production' && distDir && fs.existsSync(distDir)) {
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path === '/health' || req.path === '/healthz') return next();
+    if (req.path.startsWith('/api') || req.path === '/health' || req.path === '/healthz' || req.path === '/__static') return next();
     res.sendFile(path.join(distDir, 'index.html'));
   });
 }
@@ -775,5 +788,6 @@ app.get('/api/admin/submissions', requireAdmin, (req, res) => {
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('Serving static from:', publicDir);
+  console.log('Resolved publicDir:', publicDir);
+  if (distDir) console.log('Resolved distDir:', distDir);
 });
