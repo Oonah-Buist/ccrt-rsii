@@ -673,6 +673,9 @@ if (NODE_ENV === 'production') {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).send('ok');
+});
 app.get('/healthz', (req, res) => {
   db.get('SELECT 1 as ok', [], (err, row) => {
     if (err) return res.status(500).json({ status: 'error' });
@@ -726,6 +729,6 @@ app.get('/api/admin/submissions', requireAdmin, (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
