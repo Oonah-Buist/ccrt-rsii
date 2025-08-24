@@ -19,7 +19,13 @@ const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // SQLite DB setup
-const db = new sqlite3.Database(path.join(__dirname, 'ccrt-rsii.db'));
+// Allow overriding DB locations via env so platforms like Railway can mount volumes
+const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'ccrt-rsii.db');
+const SESSIONS_DB_FILE = process.env.SESSIONS_DB_FILE || path.join(__dirname, 'sessions.sqlite');
+// Ensure directories exist
+try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); } catch {}
+try { fs.mkdirSync(path.dirname(SESSIONS_DB_FILE), { recursive: true }); } catch {}
+const db = new sqlite3.Database(DB_FILE);
 
 // Middleware
 // Trust proxy when behind reverse proxy (Nginx/Cloudflare) for correct proto & IP
@@ -64,7 +70,7 @@ app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  store: new SQLiteStore({ db: 'sessions.sqlite', dir: __dirname }),
+  store: new SQLiteStore({ db: path.basename(SESSIONS_DB_FILE), dir: path.dirname(SESSIONS_DB_FILE) }),
   cookie: {
     secure: NODE_ENV === 'production',
     sameSite: NODE_ENV === 'production' ? 'lax' : 'lax',
