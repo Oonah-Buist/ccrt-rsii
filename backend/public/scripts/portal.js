@@ -152,7 +152,7 @@ class ParticipantPortal {
     }
 
     redirectToLogin() {
-        window.location.href = 'participant-login.html';
+        window.location.href = 'participant-login';
     }
 }
 

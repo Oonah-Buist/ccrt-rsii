@@ -48,7 +48,7 @@
             body: JSON.stringify({ username, password })
         });
         if (resp.ok) {
-            window.location.href = 'admin-console.html';
+            window.location.href = 'admin-console';
         } else {
             errorDiv.textContent = 'Invalid username or password.';
             errorDiv.style.display = 'block';

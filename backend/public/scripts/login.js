@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ login_id })
             });
             if (resp.ok) {
-                window.location.href = 'participant-portal.html';
+                window.location.href = 'participant-portal';
             } else {
                 alert('Invalid Login ID. Please try again.');
                 document.getElementById('participantLoginId').value = '';
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify({ login_id })
                 });
                 if (resp.ok) {
-                    window.location.href = 'baa-form.html';
+                    window.location.href = 'baa-form';
                 } else if (resp.status === 401) {
                     alert('Invalid Login ID. Please try again.');
                     document.getElementById('baaLoginId').value = '';

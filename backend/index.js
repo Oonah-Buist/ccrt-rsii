@@ -694,17 +694,31 @@ const distCandidates = [
 ];
 let distDir = distCandidates.find(p => fs.existsSync(p));
 
+// Redirect .html URLs to extensionless (canonicalize)
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (!req.path.toLowerCase().endsWith('.html')) return next();
+  const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  // /index.html -> /
+  if (req.path.toLowerCase() === '/index.html') {
+    return res.redirect(301, '/' + qs);
+  }
+  // /page.html -> /page
+  const target = req.path.replace(/\.html$/i, '');
+  return res.redirect(301, target + qs);
+});
+
 // Explicit mounts for common folders
 app.use('/assets', express.static(path.join(publicDir, 'assets')));
 app.use('/assets', express.static(path.join(publicDir, 'Assets'))); // case-insensitive alias
 app.use('/styles', express.static(path.join(publicDir, 'styles')));
 app.use('/scripts', express.static(path.join(publicDir, 'scripts')));
 
-// Always serve the resolved public folder
-app.use(express.static(publicDir));
+// Always serve the resolved public folder (support extensionless HTML)
+app.use(express.static(publicDir, { extensions: ['html'] }));
 // Also serve dist if present (e.g., a built SPA)
 if (distDir && fs.existsSync(distDir)) {
-  app.use(express.static(distDir));
+  app.use(express.static(distDir, { extensions: ['html'] }));
 }
 
 // If serving a built SPA, provide a fallback to index.html from dist

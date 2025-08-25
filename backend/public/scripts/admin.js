@@ -7,7 +7,7 @@ class AdminConsole {
     }
 
     redirectToLogin() {
-        window.location.href = 'admin-login.html';
+        window.location.href = 'admin-login';
     }
 
     async init() {
@@ -70,7 +70,7 @@ class AdminConsole {
             baaList.innerHTML = '<div>Loading...</div>';
             try {
                 const res = await fetch('/api/baas', { credentials: 'include' });
-                if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
+                if (res.status === 401) { window.location.href = 'admin-login'; return; }
                 if (!res.ok) throw new Error('Failed to fetch BAAs');
                 const data = await res.json();
                 baaList.innerHTML = '';
@@ -165,7 +165,7 @@ class AdminConsole {
                                 credentials: 'include',
                                 body: JSON.stringify(body)
                             });
-                            if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
+                            if (resp.status === 401) { window.location.href = 'admin-login'; return; }
                             if (resp.ok) {
                                 fetchBaas();
                             } else {
@@ -179,7 +179,7 @@ class AdminConsole {
                                 method: 'DELETE',
                                 credentials: 'include'
                             });
-                            if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
+                            if (resp.status === 401) { window.location.href = 'admin-login'; return; }
                             if (resp.ok) {
                                 fetchBaas();
                             } else {
@@ -223,7 +223,7 @@ class AdminConsole {
                     credentials: 'include',
                     body: JSON.stringify({ name, email, login_id: loginId, jotform_embed: jotform })
                 });
-                if (resp.status === 401) { window.location.href = 'admin-login.html'; return; }
+                if (resp.status === 401) { window.location.href = 'admin-login'; return; }
                 if (resp.ok) {
                     baaForm.style.display = 'none';
                     addBaaBtn.style.display = 'block';
