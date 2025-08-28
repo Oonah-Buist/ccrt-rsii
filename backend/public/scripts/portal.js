@@ -73,17 +73,17 @@ class ParticipantPortal {
     deriveJotformUrl(embed) {
         if (!embed) return null;
         const s = String(embed);
-        // If it's already a direct link
-        const direct = s.match(/https?:\/\/form\.jotform\.com\/(\d+)/i);
+        // Accept a variety of public form links (handles eu and www/form variants)
+        const direct = s.match(/https?:\/\/(?:www\.)?(?:form\.)?jotform(?:eu)?\.com\/(?:form\/)?(\d+)/i);
         if (direct) return `https://form.jotform.com/${direct[1]}`;
         // jsform script embed
         const jsformId = s.match(/jsform\/(\d+)/i);
         if (jsformId) return `https://form.jotform.com/${jsformId[1]}`;
         // iframe src
         const src = s.match(/src="([^"]+)"/i);
-        if (src && /jotform\.com/i.test(src[1])) {
+        if (src && /jotform/i.test(src[1])) {
             // If it's a jsform URL, convert to direct form URL
-            const idFromSrc = src[1].match(/(?:jsform|\/)(\d+)/i);
+            const idFromSrc = src[1].match(/(?:jsform|\/)\s*(\d+)/i) || src[1].match(/\/(\d+)(?:[?#]|$)/);
             if (idFromSrc) return `https://form.jotform.com/${idFromSrc[1]}`;
             return src[1];
         }
