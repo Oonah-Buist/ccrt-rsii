@@ -13,6 +13,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const SQLiteStore = require('connect-sqlite3')(session);
 const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 // Initialize SendGrid when configured
@@ -21,10 +22,22 @@ try {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     console.log('SendGrid configured: contact form email enabled');
   } else {
-    console.warn('SENDGRID_API_KEY not set. Contact form emailing is disabled.');
+    console.warn('SENDGRID_API_KEY not set. Contact form will try SMTP if configured.');
   }
 } catch (e) {
   console.error('Failed to initialize SendGrid:', e?.message || e);
+}
+
+// Prepare SMTP transporter (optional)
+let smtpTransport = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  smtpTransport = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: (process.env.SMTP_SECURE || 'false').toLowerCase() === 'true',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  });
+  console.log('SMTP configured: contact form email enabled via SMTP');
 }
 
 const app = express();
@@ -760,9 +773,10 @@ app.get('/healthz', (req, res) => {
     if (err) return res.status(500).json({ status: 'error' });
     res.json({
       status: 'ok',
-      emailConfigured: Boolean(process.env.SENDGRID_API_KEY),
+      emailConfigured: Boolean(process.env.SENDGRID_API_KEY) || Boolean(smtpTransport),
       contactFromConfigured: Boolean(process.env.CONTACT_FROM),
-      contactToConfigured: Boolean(process.env.CONTACT_TO)
+      contactToConfigured: Boolean(process.env.CONTACT_TO),
+      smtpConfigured: Boolean(smtpTransport)
     });
   });
 });
@@ -845,29 +859,50 @@ app.post('/api/contact', async (req, res) => {
   if (!name || !email || !message) {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
-  if (!process.env.SENDGRID_API_KEY) {
-    return res.status(500).json({ ok: false, error: 'Email not configured', reason: 'EMAIL_NOT_CONFIGURED' });
-  }
   const to = process.env.CONTACT_TO || 'contact@ccrt-rsii.org';
-  const from = process.env.CONTACT_FROM || 'no-reply@ccrt-rsii.org';
+  const from = process.env.CONTACT_FROM || process.env.SMTP_FROM || 'no-reply@ccrt-rsii.org';
   const subj = subject && String(subject).trim() ? String(subject).trim() : `Website contact from ${name}`;
   const text = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\nMessage:\n${message}`;
-  try {
-    await sgMail.send({ to, from, replyTo: email, subject: subj, text });
-    return res.json({ ok: true });
-  } catch (err) {
-    // Parse common SendGrid failure reasons
-    let reason = 'SENDGRID_ERROR';
-    const errors = err?.response?.body?.errors;
-    const httpCode = err?.code || err?.response?.statusCode;
-    if (!process.env.SENDGRID_API_KEY) reason = 'EMAIL_NOT_CONFIGURED';
-    else if (httpCode === 401 || httpCode === 403) reason = 'INVALID_API_KEY_OR_PERMISSIONS';
-    else if (Array.isArray(errors) && errors.some(e => String(e.message || e).toLowerCase().includes('from address does not match'))) {
-      reason = 'FROM_NOT_VERIFIED';
+
+  // Prefer SendGrid if available
+  if (process.env.SENDGRID_API_KEY) {
+    try {
+      await sgMail.send({ to, from, replyTo: email, subject: subj, text });
+      return res.json({ ok: true });
+    } catch (err) {
+      let reason = 'SENDGRID_ERROR';
+      const errors = err?.response?.body?.errors;
+      const httpCode = err?.code || err?.response?.statusCode;
+      if (httpCode === 401 || httpCode === 403) reason = 'INVALID_API_KEY_OR_PERMISSIONS';
+      else if (Array.isArray(errors) && errors.some(e => String(e.message || e).toLowerCase().includes('from address does not match'))) {
+        reason = 'FROM_NOT_VERIFIED';
+      }
+      console.error('SendGrid error:', { httpCode, reason, errors });
+      // Fall through to SMTP if configured
+      if (!smtpTransport) {
+        return res.status(502).json({ ok: false, error: 'Failed to send', reason });
+      }
     }
-    console.error('SendGrid error:', { httpCode, reason, errors });
-    return res.status(502).json({ ok: false, error: 'Failed to send', reason });
   }
+
+  // Try SMTP if configured
+  if (smtpTransport) {
+    try {
+      await smtpTransport.sendMail({
+        to,
+        from,
+        replyTo: email,
+        subject: subj,
+        text
+      });
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error('SMTP error:', e?.message || e);
+      return res.status(502).json({ ok: false, error: 'Failed to send', reason: 'SMTP_ERROR' });
+    }
+  }
+
+  return res.status(500).json({ ok: false, error: 'Email not configured', reason: 'EMAIL_NOT_CONFIGURED' });
 });
 
 // Start server
