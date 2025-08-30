@@ -15,6 +15,18 @@ const SQLiteStore = require('connect-sqlite3')(session);
 const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
+// Initialize SendGrid when configured
+try {
+  if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('SendGrid configured: contact form email enabled');
+  } else {
+    console.warn('SENDGRID_API_KEY not set. Contact form emailing is disabled.');
+  }
+} catch (e) {
+  console.error('Failed to initialize SendGrid:', e?.message || e);
+}
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -635,7 +647,7 @@ app.get('/api/jotform/thankyou', (req, res) => {
 <body>
   <h2 class="${success ? 'ok' : 'warn'}">${title}</h2>
   <p>${message}</p>
-  <a class="btn" href="/participant-portal.html">Back to Portal</a>
+  <a class="btn" href="/participant-portal">Back to Portal</a>
   <script>
     try {
       if (window.opener && !window.opener.closed) {
@@ -820,24 +832,27 @@ app.post('/api/contact', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
   if (!process.env.SENDGRID_API_KEY) {
-    return res.status(500).json({ ok: false, error: 'Email not configured' });
+    return res.status(500).json({ ok: false, error: 'Email not configured', reason: 'EMAIL_NOT_CONFIGURED' });
   }
   const to = process.env.CONTACT_TO || 'contact@ccrt-rsii.org';
   const from = process.env.CONTACT_FROM || 'no-reply@ccrt-rsii.org';
   const subj = subject && String(subject).trim() ? String(subject).trim() : `Website contact from ${name}`;
   const text = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\nMessage:\n${message}`;
   try {
-    await sgMail.send({
-      to,
-      from,
-      replyTo: email,
-      subject: subj,
-      text,
-    });
+    await sgMail.send({ to, from, replyTo: email, subject: subj, text });
     return res.json({ ok: true });
   } catch (err) {
-    console.error('SendGrid error:', err?.response?.body || err);
-    return res.status(502).json({ ok: false, error: 'Failed to send' });
+    // Parse common SendGrid failure reasons
+    let reason = 'SENDGRID_ERROR';
+    const errors = err?.response?.body?.errors;
+    const httpCode = err?.code || err?.response?.statusCode;
+    if (!process.env.SENDGRID_API_KEY) reason = 'EMAIL_NOT_CONFIGURED';
+    else if (httpCode === 401 || httpCode === 403) reason = 'INVALID_API_KEY_OR_PERMISSIONS';
+    else if (Array.isArray(errors) && errors.some(e => String(e.message || e).toLowerCase().includes('from address does not match'))) {
+      reason = 'FROM_NOT_VERIFIED';
+    }
+    console.error('SendGrid error:', { httpCode, reason, errors });
+    return res.status(502).json({ ok: false, error: 'Failed to send', reason });
   }
 });
 
