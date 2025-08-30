@@ -12,6 +12,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const SQLiteStore = require('connect-sqlite3')(session);
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 const app = express();
@@ -810,6 +811,34 @@ app.get('/api/admin/submissions', requireAdmin, (req, res) => {
       res.json(result);
     });
   });
+});
+
+// --- Contact form (simple background email) ---
+app.post('/api/contact', async (req, res) => {
+  const { name, email, phone, subject, message } = req.body || {};
+  if (!name || !email || !message) {
+    return res.status(400).json({ ok: false, error: 'Missing required fields' });
+  }
+  if (!process.env.SENDGRID_API_KEY) {
+    return res.status(500).json({ ok: false, error: 'Email not configured' });
+  }
+  const to = process.env.CONTACT_TO || 'contact@ccrt-rsii.org';
+  const from = process.env.CONTACT_FROM || 'no-reply@ccrt-rsii.org';
+  const subj = subject && String(subject).trim() ? String(subject).trim() : `Website contact from ${name}`;
+  const text = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\nMessage:\n${message}`;
+  try {
+    await sgMail.send({
+      to,
+      from,
+      replyTo: email,
+      subject: subj,
+      text,
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('SendGrid error:', err?.response?.body || err);
+    return res.status(502).json({ ok: false, error: 'Failed to send' });
+  }
 });
 
 // Start server

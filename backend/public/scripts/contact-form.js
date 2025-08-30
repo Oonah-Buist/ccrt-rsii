@@ -1,30 +1,33 @@
-// Contact form functionality
+// Contact form functionality via backend API
+// Replaces previous mailto approach
+
 document.addEventListener('DOMContentLoaded', function() {
-    const contactForm = document.getElementById('contactForm');
-    
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(contactForm);
-            const name = formData.get('name');
-            const email = formData.get('email');
-            const phone = formData.get('phone');
-            const subject = formData.get('subject');
-            const message = formData.get('message');
-            
-            // Create email body
-            const emailBody = `Name: ${name}%0D%0A` +
-                             `Email: ${email}%0D%0A` +
-                             `Phone: ${phone || 'Not provided'}%0D%0A%0D%0A` +
-                             `Message:%0D%0A${message}`;
-            
-            // Create mailto link
-            const mailtoLink = `mailto:contact@ccrt-rsii.org?subject=${encodeURIComponent(subject)}&body=${emailBody}`;
-            
-            // Open email client
-            window.location.href = mailtoLink;
-        });
+  const contactForm = document.getElementById('contactForm');
+  if (!contactForm) return;
+
+  contactForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(contactForm);
+    const payload = Object.fromEntries(formData.entries());
+
+    const btn = contactForm.querySelector('.form-btn');
+    const original = btn ? btn.textContent : null;
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Send failed');
+      alert('Thanks! Your message has been sent.');
+      contactForm.reset();
+    } catch (e) {
+      alert('Sorry, there was a problem sending your message. Please try again.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = original; }
     }
+  });
 });
