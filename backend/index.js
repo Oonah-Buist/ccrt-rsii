@@ -721,6 +721,15 @@ app.use((req, res, next) => {
   return res.redirect(301, target + qs);
 });
 
+// Prevent CDN/proxy from serving stale HTML (allow assets to cache normally)
+app.use((req, res, next) => {
+  const accept = req.headers['accept'] || '';
+  if (req.method === 'GET' && accept.includes('text/html')) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 // Explicit mounts for common folders
 app.use('/assets', express.static(path.join(publicDir, 'assets')));
 app.use('/assets', express.static(path.join(publicDir, 'Assets'))); // case-insensitive alias
@@ -749,7 +758,12 @@ app.get('/health', (req, res) => {
 app.get('/healthz', (req, res) => {
   db.get('SELECT 1 as ok', [], (err, row) => {
     if (err) return res.status(500).json({ status: 'error' });
-    res.json({ status: 'ok' });
+    res.json({
+      status: 'ok',
+      emailConfigured: Boolean(process.env.SENDGRID_API_KEY),
+      contactFromConfigured: Boolean(process.env.CONTACT_FROM),
+      contactToConfigured: Boolean(process.env.CONTACT_TO)
+    });
   });
 });
 
