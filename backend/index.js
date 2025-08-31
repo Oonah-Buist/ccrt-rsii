@@ -12,21 +12,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const SQLiteStore = require('connect-sqlite3')(session);
-const sgMail = require('@sendgrid/mail');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
-
-// Initialize SendGrid when configured
-try {
-  if (process.env.SENDGRID_API_KEY) {
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    console.log('SendGrid configured: contact form email enabled');
-  } else {
-    console.warn('SENDGRID_API_KEY not set. Contact form will try SMTP if configured.');
-  }
-} catch (e) {
-  console.error('Failed to initialize SendGrid:', e?.message || e);
-}
 
 // Prepare SMTP transporter (optional)
 let smtpTransport = null;
@@ -43,6 +29,7 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
 const app = express();
 const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const STARTED_AT = new Date().toISOString();
 
 // SQLite DB setup
 // Allow overriding DB locations via env so platforms like Railway can mount volumes
@@ -784,10 +771,7 @@ app.get('/healthz', (req, res) => {
     if (err) return res.status(500).json({ status: 'error' });
     res.json({
       status: 'ok',
-      emailConfigured: Boolean(process.env.SENDGRID_API_KEY) || Boolean(smtpTransport),
-      contactFromConfigured: Boolean(process.env.CONTACT_FROM),
-      contactToConfigured: Boolean(process.env.CONTACT_TO),
-      smtpConfigured: Boolean(smtpTransport)
+      startedAt: STARTED_AT
     });
   });
 });
@@ -872,58 +856,6 @@ app.get('/api/admin/submissions', requireAdmin, (req, res) => {
       res.json(result);
     });
   });
-});
-
-// --- Contact form (simple background email) ---
-app.post('/api/contact', async (req, res) => {
-  const { name, email, phone, subject, message } = req.body || {};
-  if (!name || !email || !message) {
-    return res.status(400).json({ ok: false, error: 'Missing required fields' });
-  }
-  const to = process.env.CONTACT_TO || 'contact@ccrt-rsii.org';
-  const from = process.env.CONTACT_FROM || process.env.SMTP_FROM || 'no-reply@ccrt-rsii.org';
-  const subj = subject && String(subject).trim() ? String(subject).trim() : `Website contact from ${name}`;
-  const text = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\nMessage:\n${message}`;
-
-  // Prefer SendGrid if available
-  if (process.env.SENDGRID_API_KEY) {
-    try {
-      await sgMail.send({ to, from, replyTo: email, subject: subj, text });
-      return res.json({ ok: true });
-    } catch (err) {
-      let reason = 'SENDGRID_ERROR';
-      const errors = err?.response?.body?.errors;
-      const httpCode = err?.code || err?.response?.statusCode;
-      if (httpCode === 401 || httpCode === 403) reason = 'INVALID_API_KEY_OR_PERMISSIONS';
-      else if (Array.isArray(errors) && errors.some(e => String(e.message || e).toLowerCase().includes('from address does not match'))) {
-        reason = 'FROM_NOT_VERIFIED';
-      }
-      console.error('SendGrid error:', { httpCode, reason, errors });
-      // Fall through to SMTP if configured
-      if (!smtpTransport) {
-        return res.status(502).json({ ok: false, error: 'Failed to send', reason });
-      }
-    }
-  }
-
-  // Try SMTP if configured
-  if (smtpTransport) {
-    try {
-      await smtpTransport.sendMail({
-        to,
-        from,
-        replyTo: email,
-        subject: subj,
-        text
-      });
-      return res.json({ ok: true });
-    } catch (e) {
-      console.error('SMTP error:', e?.message || e);
-      return res.status(502).json({ ok: false, error: 'Failed to send', reason: 'SMTP_ERROR' });
-    }
-  }
-
-  return res.status(500).json({ ok: false, error: 'Email not configured', reason: 'EMAIL_NOT_CONFIGURED' });
 });
 
 // Start server
