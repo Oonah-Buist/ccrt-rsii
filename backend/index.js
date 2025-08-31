@@ -812,6 +812,16 @@ app.get('/__static', (req, res) => {
   });
 });
 
+// Provide a cache-busting route for the Contact page
+app.get('/contact-new', (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'no-store');
+    res.sendFile(path.join(publicDir, 'contact.html'));
+  } catch (e) {
+    res.status(500).send('Contact page unavailable');
+  }
+});
+
 // --- Error handling middleware ---
 app.use((err, req, res, next) => {
   console.error(err.stack);
