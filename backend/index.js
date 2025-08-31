@@ -740,6 +740,10 @@ app.use((req, res, next) => {
   if (req.method === 'GET' && accept.includes('text/html')) {
     res.setHeader('Cache-Control', 'no-store');
   }
+  // Always bust cache for contact page scripts
+  if (req.path.startsWith('/scripts/contact-')) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
   next();
 });
 
