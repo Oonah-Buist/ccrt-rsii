@@ -14,17 +14,7 @@ const rateLimit = require('express-rate-limit');
 const SQLiteStore = require('connect-sqlite3')(session);
 require('dotenv').config();
 
-// Prepare SMTP transporter (optional)
-let smtpTransport = null;
-if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  smtpTransport = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: (process.env.SMTP_SECURE || 'false').toLowerCase() === 'true',
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-  });
-  console.log('SMTP configured: contact form email enabled via SMTP');
-}
+// Removed legacy email integrations (SendGrid/Nodemailer)
 
 const app = express();
 const PORT = process.env.PORT || 4000;
