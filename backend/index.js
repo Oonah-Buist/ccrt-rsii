@@ -763,7 +763,14 @@ if (distDir && fs.existsSync(distDir)) {
 // If serving a built SPA, provide a fallback to index.html from dist
 if (NODE_ENV === 'production' && distDir && fs.existsSync(distDir)) {
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path === '/health' || req.path === '/healthz' || req.path === '/__static') return next();
+    if (
+      req.path.startsWith('/api') ||
+      req.path === '/health' ||
+      req.path === '/healthz' ||
+      req.path === '/__static' ||
+      req.path === '/contact-new' ||
+      req.path === '/contact'
+    ) return next();
     res.sendFile(path.join(distDir, 'index.html'));
   });
 }
